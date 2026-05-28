@@ -1,0 +1,329 @@
+// OIS Command Center — domain schema (lifecycle-ready for later phases)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CONSULTATION_SCHEDULED
+  PROPOSAL_SENT
+  WON
+  LOST
+}
+
+enum LeadSource {
+  INSTAGRAM
+  FACEBOOK
+  LINKEDIN
+  REFERRAL
+  WEBSITE_FORM
+  COLD_EMAIL
+  IN_PERSON
+  OTHER
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  PAST_CLIENT
+  PROSPECT
+}
+
+enum ProjectStatus {
+  NOT_STARTED
+  DISCOVERY
+  DESIGN
+  DEVELOPMENT
+  REVIEW
+  WAITING_ON_CLIENT
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+enum ServiceType {
+  WEBSITE_BUILD
+  WEBSITE_REDESIGN
+  CRM_INTEGRATION
+  EMAIL_AUTOMATION
+  BOOKING_SYSTEM
+  DASHBOARD
+  AI_BUSINESS_SYSTEM
+  WEB_APP
+  DIGITAL_INFRASTRUCTURE
+  OTHER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  WAITING
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum FollowUpStatus {
+  PENDING
+  COMPLETED
+  MISSED
+  CANCELLED
+}
+
+enum FollowUpReason {
+  CONSULTATION_REMINDER
+  PROPOSAL_FOLLOW_UP
+  PAYMENT_REMINDER
+  MISSING_CONTENT_REMINDER
+  WEBSITE_REVIEW_REMINDER
+  MONTHLY_CHECK_IN
+  RENEWAL_REMINDER
+  OTHER
+}
+
+enum DocumentFileType {
+  CONTRACT
+  PROPOSAL
+  INVOICE
+  LOGO
+  BRANDING
+  IMAGES
+  WEBSITE_COPY
+  ACCESS_CREDENTIALS
+  MEETING_NOTES
+  PROJECT_BRIEF
+  LEGAL_DOCUMENT
+  OTHER
+}
+
+enum ActivityType {
+  NOTE
+  STATUS_CHANGE
+  EMAIL
+  CALL
+  MEETING
+  INVOICE
+  PROJECT
+  TASK
+  SYSTEM
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         UserRole @default(ADMIN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assignedTasks Task[]     @relation("AssignedTasks")
+  activities    Activity[]
+  notes         Note[]
+}
+
+model Lead {
+  id              String      @id @default(cuid())
+  name            String
+  businessName    String?
+  email           String?
+  phone           String?
+  website         String?
+  industry        String?
+  serviceInterest String?
+  leadSource      LeadSource?
+  status          LeadStatus  @default(NEW)
+  notes           String?     @db.Text
+  followUpDate    DateTime?
+  clientId        String?     @unique
+  convertedAt     DateTime?
+  client          Client?     @relation(fields: [clientId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  activities Activity[]
+  followUps  FollowUp[]
+}
+
+model Client {
+  id            String       @id @default(cuid())
+  name          String
+  businessName  String?
+  email         String?
+  phone         String?
+  website       String?
+  address       String?      @db.Text
+  status        ClientStatus @default(ACTIVE)
+  packageId     String?
+  package       Package?     @relation(fields: [packageId], references: [id])
+  monthlyPlan   String?
+  monthlyAmount String?
+  notes         String?      @db.Text
+  lead          Lead?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  projects      Project[]
+  invoices      Invoice[]
+  noteRecords   Note[]
+  activities    Activity[]
+  followUps     FollowUp[]
+  documentLinks DocumentLink[]
+}
+
+model Package {
+  id           String   @id @default(cuid())
+  name         String
+  setupPrice   String
+  monthlyPrice String
+  description  String?  @db.Text
+  features     String[]
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  clients  Client[]
+  projects Project[]
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  serviceType ServiceType
+  description String?       @db.Text
+  status      ProjectStatus @default(NOT_STARTED)
+  clientId    String
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  packageId   String?
+  package     Package?      @relation(fields: [packageId], references: [id])
+  price       String?
+  monthlyFee  String?
+  startDate   DateTime?
+  dueDate     DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  tasks         Task[]
+  invoices      Invoice[]
+  notes         Note[]
+  activities    Activity[]
+  documentLinks DocumentLink[]
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?      @db.Text
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assigneeId  String?
+  assignee    User?        @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique
+  amount        String
+  status        InvoiceStatus @default(DRAFT)
+  dueDate       DateTime?
+  paidAt        DateTime?
+  paymentLink   String?
+  notes         String?       @db.Text
+  clientId      String
+  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId     String?
+  project       Project?      @relation(fields: [projectId], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model FollowUp {
+  id           String           @id @default(cuid())
+  reason       FollowUpReason
+  notes        String?          @db.Text
+  status       FollowUpStatus   @default(PENDING)
+  followUpDate DateTime
+  completedAt  DateTime?
+  leadId       String?
+  lead         Lead?            @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  clientId     String?
+  client       Client?          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  title     String?
+  content   String   @db.Text
+  isPinned  Boolean  @default(false)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  clientId  String?
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  title       String
+  description String?      @db.Text
+  metadata    Json?
+  authorId    String?
+  author      User?        @relation(fields: [authorId], references: [id])
+  leadId      String?
+  lead        Lead?        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  clientId    String?
+  client      Client?      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId   String?
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+}
+
+model DocumentLink {
+  id        String           @id @default(cuid())
+  name      String
+  fileType  DocumentFileType
+  url       String
+  notes     String?          @db.Text
+  clientId  String?
+  client    Client?          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project?         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}

@@ -1,0 +1,269 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useActionState } from "react";
+import type { DocumentActionState } from "@/lib/documents/action-state";
+import { documentFileTypeOptions } from "@/lib/documents/constants";
+import type { DocumentFormInput } from "@/lib/validators/document";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
+type ClientOption = { id: string; name: string; businessName: string | null };
+type ProjectOption = {
+  id: string;
+  name: string;
+  clientId: string;
+  client: { id: string; name: string; businessName: string | null };
+};
+
+type DocumentFormAction = (
+  prevState: DocumentActionState,
+  formData: FormData,
+) => Promise<DocumentActionState>;
+
+type DocumentFormProps = {
+  mode: "create" | "edit";
+  action: DocumentFormAction;
+  clients: ClientOption[];
+  projects: ProjectOption[];
+  initialValues?: Partial<DocumentFormInput>;
+  lockClientId?: boolean;
+  lockProjectId?: boolean;
+  relatedClientLabel?: string;
+};
+
+const initialState: DocumentActionState = {};
+
+function entityLabel(name: string, businessName: string | null) {
+  return businessName ? `${name} — ${businessName}` : name;
+}
+
+export function DocumentForm({
+  mode,
+  action,
+  clients,
+  projects,
+  initialValues,
+  lockClientId = false,
+  lockProjectId = false,
+  relatedClientLabel,
+}: DocumentFormProps) {
+  const [state, formAction, pending] = useActionState(action, initialState);
+
+  const initialLink =
+    initialValues?.projectId ? "project" : initialValues?.clientId ? "client" : "client";
+
+  const [linkType, setLinkType] = useState<"client" | "project">(initialLink);
+  const [clientId, setClientId] = useState(initialValues?.clientId ?? "");
+  const [projectId, setProjectId] = useState(initialValues?.projectId ?? "");
+
+  const fileType = initialValues?.fileType ?? "OTHER";
+
+  const visibleProjects = useMemo(
+    () => (clientId ? projects.filter((p) => p.clientId === clientId) : projects),
+    [clientId, projects],
+  );
+
+  const selectClass =
+    "block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200";
+
+  const locked = lockClientId || lockProjectId;
+
+  return (
+    <form action={formAction} className="space-y-5">
+      <Input
+        label="Document name"
+        name="name"
+        defaultValue={initialValues?.name ?? ""}
+        placeholder="e.g. Signed service agreement"
+        required
+        error={state.fieldErrors?.name}
+      />
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label htmlFor="fileType" className="block text-sm font-medium text-slate-700">
+            File type
+          </label>
+          <select
+            id="fileType"
+            name="fileType"
+            defaultValue={fileType}
+            required
+            className={selectClass}
+          >
+            {documentFileTypeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          {state.fieldErrors?.fileType ? (
+            <p className="text-xs text-red-600">{state.fieldErrors.fileType}</p>
+          ) : null}
+        </div>
+        <Input
+          label="Document URL"
+          name="url"
+          type="url"
+          defaultValue={initialValues?.url ?? ""}
+          placeholder="https://drive.google.com/..."
+          required
+          error={state.fieldErrors?.url}
+        />
+      </div>
+
+      <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <p className="text-sm font-medium text-slate-800">Attach to</p>
+
+        {!locked ? (
+          <div className="flex flex-wrap gap-4 text-sm">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="linkTypeUi"
+                checked={linkType === "client"}
+                onChange={() => {
+                  setLinkType("client");
+                  setProjectId("");
+                }}
+              />
+              Client
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="linkTypeUi"
+                checked={linkType === "project"}
+                onChange={() => {
+                  setLinkType("project");
+                }}
+              />
+              Project
+            </label>
+          </div>
+        ) : null}
+
+        {lockProjectId && projectId ? (
+          <>
+            <input type="hidden" name="projectId" value={projectId} />
+            <input
+              type="hidden"
+              name="clientId"
+              value={clientId || projects.find((p) => p.id === projectId)?.clientId || ""}
+            />
+            <p className="text-sm text-slate-700">
+              Project:{" "}
+              {visibleProjects.find((p) => p.id === projectId)?.name ?? "Selected project"}
+            </p>
+            {relatedClientLabel ? (
+              <p className="text-sm text-slate-600">Client: {relatedClientLabel}</p>
+            ) : null}
+          </>
+        ) : lockClientId && clientId ? (
+          <>
+            <input type="hidden" name="clientId" value={clientId} />
+            <input type="hidden" name="projectId" value="" />
+            <p className="text-sm text-slate-700">
+              Client:{" "}
+              {clients.find((c) => c.id === clientId)
+                ? entityLabel(
+                    clients.find((c) => c.id === clientId)!.name,
+                    clients.find((c) => c.id === clientId)!.businessName,
+                  )
+                : "Selected client"}
+            </p>
+          </>
+        ) : linkType === "project" ? (
+          <>
+            <div className="space-y-1.5">
+              <label
+                htmlFor="projectId"
+                className="block text-sm font-medium text-slate-700"
+              >
+                Project
+              </label>
+              <select
+                id="projectId"
+                name="projectId"
+                value={projectId}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setProjectId(next);
+                  const project = projects.find((p) => p.id === next);
+                  if (project) setClientId(project.clientId);
+                }}
+                className={selectClass}
+              >
+                <option value="">Select a project</option>
+                {visibleProjects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name} ({entityLabel(project.client.name, project.client.businessName)})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <input type="hidden" name="clientId" value={clientId} />
+          </>
+        ) : (
+          <div className="space-y-1.5">
+            <label htmlFor="clientId" className="block text-sm font-medium text-slate-700">
+              Client
+            </label>
+            <select
+              id="clientId"
+              name="clientId"
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+              className={selectClass}
+            >
+              <option value="">Select a client</option>
+              {clients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {entityLabel(client.name, client.businessName)}
+                </option>
+              ))}
+            </select>
+            <input type="hidden" name="projectId" value="" />
+          </div>
+        )}
+
+        {state.fieldErrors?.clientId ? (
+          <p className="text-xs text-red-600">{state.fieldErrors.clientId}</p>
+        ) : null}
+        {state.fieldErrors?.projectId ? (
+          <p className="text-xs text-red-600">{state.fieldErrors.projectId}</p>
+        ) : null}
+      </div>
+
+      <Textarea
+        label="Notes"
+        name="notes"
+        rows={3}
+        defaultValue={initialValues?.notes ?? ""}
+        placeholder="What this link contains, version, or access instructions..."
+      />
+
+      <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        Internal links only — no file uploads in this phase. For Access Credentials, link
+        to a secure password manager or vault record. Never store passwords in OIS Command
+        Center.
+      </p>
+
+      {state.error && !state.fieldErrors ? (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {state.error}
+        </p>
+      ) : null}
+
+      <Button type="submit" disabled={pending}>
+        {pending
+          ? "Saving..."
+          : mode === "create"
+            ? "Save document link"
+            : "Save changes"}
+      </Button>
+    </form>
+  );
+}
