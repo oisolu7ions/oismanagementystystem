@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   },
   description:
     "Internal CRM and project management dashboard for OIS Technology.",
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    apple: [{ url: "/apple-icon.png", type: "image/png" }],
+    shortcut: [{ url: "/favicon.ico", type: "image/x-icon" }],
+  },
 };
 
 export default function RootLayout({
