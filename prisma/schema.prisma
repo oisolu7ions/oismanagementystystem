@@ -120,6 +120,11 @@ enum DocumentFileType {
   OTHER
 }
 
+enum DocumentSourceType {
+  LINK
+  FILE
+}
+
 enum ActivityType {
   NOTE
   STATUS_CHANGE
@@ -315,15 +320,20 @@ model Activity {
 }
 
 model DocumentLink {
-  id        String           @id @default(cuid())
-  name      String
-  fileType  DocumentFileType
-  url       String
-  notes     String?          @db.Text
-  clientId  String?
-  client    Client?          @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  projectId String?
-  project   Project?         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id               String             @id @default(cuid())
+  name             String
+  fileType         DocumentFileType
+  sourceType       DocumentSourceType @default(LINK)
+  url              String?
+  storedFileName   String?
+  originalFileName String?
+  mimeType         String?
+  fileSize         Int?
+  notes            String?            @db.Text
+  clientId         String?
+  client           Client?            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId        String?
+  project          Project?           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 }

@@ -8,7 +8,7 @@ import {
 } from "@/actions/documents";
 import { DocumentFileTypeBadge } from "@/components/documents/document-file-type-badge";
 import { DocumentFilters } from "@/components/documents/document-filters";
-import { DocumentOpenLinkButton } from "@/components/documents/document-open-link-button";
+import { DocumentAttachmentButton } from "@/components/documents/document-attachment-button";
 import { DocumentSearch } from "@/components/documents/document-search";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -39,8 +39,8 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
         <div>
           <h2 className="text-2xl font-semibold text-slate-900">Documents</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Internal document links for clients and projects — Google Drive, Nextcloud,
-            Dropbox, and more. No file uploads in this phase.
+            Upload files or link external documents for clients and projects — contracts,
+            proposals, logos, briefs, and more.
           </p>
         </div>
         <Link href="/dashboard/documents/new">
@@ -53,7 +53,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
 
       <Card>
         <CardHeader
-          title="All document links"
+          title="All documents"
           description={`${documents.length} document${documents.length === 1 ? "" : "s"}`}
         />
         <CardBody className="space-y-4">
@@ -76,11 +76,11 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
               <p className="mt-1 text-sm text-slate-500">
                 {hasFilters
                   ? "Try adjusting your search or filters."
-                  : "Add your first document link for a client or project."}
+                  : "Add your first document for a client or project."}
               </p>
               {!hasFilters ? (
                 <Link href="/dashboard/documents/new" className="mt-4 inline-block">
-                  <Button size="sm">Add document link</Button>
+                  <Button size="sm">Add document</Button>
                 </Link>
               ) : null}
             </div>
@@ -95,7 +95,9 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                     <th className="px-4 py-3 text-left font-medium text-slate-600">
                       Project
                     </th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-600">Link</th>
+                    <th className="px-4 py-3 text-left font-medium text-slate-600">
+                      Attachment
+                    </th>
                     <th className="px-4 py-3 text-right font-medium text-slate-600">
                       Actions
                     </th>
@@ -147,7 +149,11 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <DocumentOpenLinkButton url={doc.url} />
+                        <DocumentAttachmentButton
+                          documentId={doc.id}
+                          sourceType={doc.sourceType}
+                          url={doc.url}
+                        />
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Link

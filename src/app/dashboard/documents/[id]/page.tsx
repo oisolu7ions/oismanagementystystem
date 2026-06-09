@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { getDocumentById } from "@/actions/documents";
 import { DocumentDeleteButton } from "@/components/documents/document-delete-button";
 import { DocumentFileTypeBadge } from "@/components/documents/document-file-type-badge";
-import { DocumentOpenLinkButton } from "@/components/documents/document-open-link-button";
+import { DocumentAttachmentButton } from "@/components/documents/document-attachment-button";
+import { formatFileSize } from "@/lib/documents/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
@@ -51,7 +52,12 @@ export default async function DocumentDetailPage({ params }: DocumentDetailPageP
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <DocumentOpenLinkButton url={document.url} label="Open link" />
+          <DocumentAttachmentButton
+            documentId={document.id}
+            sourceType={document.sourceType}
+            url={document.url}
+            size="md"
+          />
           <Link href={`/dashboard/documents/${document.id}/edit`}>
             <Button variant="secondary" size="sm">
               Edit
@@ -65,10 +71,44 @@ export default async function DocumentDetailPage({ params }: DocumentDetailPageP
       </div>
 
       <Card>
-        <CardHeader title="Document URL" />
+        <CardHeader
+          title={document.sourceType === "FILE" ? "Uploaded file" : "Document URL"}
+        />
         <CardBody className="space-y-3 text-sm">
-          <p className="break-all text-slate-700">{document.url}</p>
-          <DocumentOpenLinkButton url={document.url} />
+          {document.sourceType === "FILE" ? (
+            <>
+              <p className="text-slate-700">
+                <span className="font-medium text-slate-800">File:</span>{" "}
+                {document.originalFileName ?? document.name}
+              </p>
+              {document.fileSize ? (
+                <p className="text-slate-600">
+                  <span className="font-medium text-slate-700">Size:</span>{" "}
+                  {formatFileSize(document.fileSize)}
+                </p>
+              ) : null}
+              {document.mimeType ? (
+                <p className="text-slate-600">
+                  <span className="font-medium text-slate-700">Type:</span>{" "}
+                  {document.mimeType}
+                </p>
+              ) : null}
+              <DocumentAttachmentButton
+                documentId={document.id}
+                sourceType={document.sourceType}
+                url={document.url}
+              />
+            </>
+          ) : (
+            <>
+              <p className="break-all text-slate-700">{document.url}</p>
+              <DocumentAttachmentButton
+                documentId={document.id}
+                sourceType={document.sourceType}
+                url={document.url}
+              />
+            </>
+          )}
         </CardBody>
       </Card>
 

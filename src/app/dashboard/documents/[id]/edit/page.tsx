@@ -62,7 +62,10 @@ export default async function EditDocumentPage({ params }: EditDocumentPageProps
             initialValues={{
               name: document.name,
               fileType: document.fileType,
-              url: document.url,
+              sourceType: document.sourceType,
+              url: document.url ?? undefined,
+              originalFileName: document.originalFileName,
+              fileSize: document.fileSize,
               notes: document.notes ?? undefined,
               clientId,
               projectId: document.projectId ?? undefined,

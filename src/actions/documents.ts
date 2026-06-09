@@ -32,6 +32,7 @@ function buildDocumentWhere(params: DocumentSearchParams): Prisma.DocumentLinkWh
         { name: { contains: q, mode: "insensitive" } },
         { notes: { contains: q, mode: "insensitive" } },
         { url: { contains: q, mode: "insensitive" } },
+        { originalFileName: { contains: q, mode: "insensitive" } },
         { client: { name: { contains: q, mode: "insensitive" } } },
         { client: { businessName: { contains: q, mode: "insensitive" } } },
         { project: { name: { contains: q, mode: "insensitive" } } },

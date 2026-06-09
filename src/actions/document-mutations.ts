@@ -3,6 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { DocumentActionState } from "@/lib/documents/action-state";
+import {
+  DOCUMENT_FILE_TYPE_VALUES,
+  isLinkOnlyDocumentType,
+  type DocumentFileTypeValue,
+} from "@/lib/documents/constants";
+import { deleteStoredDocumentFile, saveDocumentFile } from "@/lib/documents/storage";
 import { prisma } from "@/lib/prisma";
 import { documentFormSchema, documentInputToDbFields } from "@/lib/validators/document";
 
@@ -35,15 +41,35 @@ function formatZodErrors(
   return { fieldErrors, error: issues[0]?.message ?? "Invalid input" };
 }
 
+function parseFileType(value: FormDataEntryValue | null): DocumentFileTypeValue | null {
+  if (typeof value !== "string") return null;
+  return DOCUMENT_FILE_TYPE_VALUES.includes(value as DocumentFileTypeValue)
+    ? (value as DocumentFileTypeValue)
+    : null;
+}
+
 function parseDocumentFormData(formData: FormData) {
+  const sourceType = formData.get("sourceType");
+  const fileType = parseFileType(formData.get("fileType"));
+
   return documentFormSchema.safeParse({
     name: formData.get("name"),
-    fileType: formData.get("fileType"),
-    url: formData.get("url"),
+    fileType,
+    sourceType:
+      fileType && isLinkOnlyDocumentType(fileType) ? "LINK" : sourceType,
+    url: formData.get("url") ?? undefined,
     notes: formData.get("notes") ?? undefined,
     clientId: formData.get("clientId") ?? undefined,
     projectId: formData.get("projectId") ?? undefined,
   });
+}
+
+function getUploadedFile(formData: FormData): File | null {
+  const value = formData.get("file");
+  if (!(value instanceof File) || value.size === 0 || value.name === "") {
+    return null;
+  }
+  return value;
 }
 
 async function validateClientExists(clientId: string): Promise<string | null> {
@@ -83,6 +109,15 @@ export async function createDocumentAction(
     return formatZodErrors(parsed.error.issues);
   }
 
+  const uploadedFile = getUploadedFile(formData);
+  const effectiveSourceType = isLinkOnlyDocumentType(parsed.data.fileType)
+    ? "LINK"
+    : parsed.data.sourceType;
+
+  if (effectiveSourceType === "FILE" && !uploadedFile) {
+    return { fieldErrors: { file: "Select a file to upload" } };
+  }
+
   const projectCheck = await validateProjectForClient(
     parsed.data.projectId,
     parsed.data.clientId,
@@ -96,11 +131,28 @@ export async function createDocumentAction(
     if (clientError) return { fieldErrors: { clientId: clientError } };
   }
 
+  let fileFields: Awaited<ReturnType<typeof saveDocumentFile>> | null = null;
+
+  if (effectiveSourceType === "FILE" && uploadedFile) {
+    try {
+      fileFields = await saveDocumentFile(uploadedFile, parsed.data.fileType);
+    } catch (error) {
+      return {
+        fieldErrors: {
+          file: error instanceof Error ? error.message : "Failed to save uploaded file",
+        },
+      };
+    }
+  }
+
   const document = await prisma.documentLink.create({
-    data: documentInputToDbFields({
-      ...parsed.data,
-      clientId: resolvedClientId,
-    }),
+    data: documentInputToDbFields(
+      {
+        ...parsed.data,
+        clientId: resolvedClientId,
+      },
+      fileFields,
+    ),
   });
 
   revalidateDocumentPaths(document.id, document.clientId, document.projectId);
@@ -122,6 +174,15 @@ export async function updateDocumentAction(
     return formatZodErrors(parsed.error.issues);
   }
 
+  const uploadedFile = getUploadedFile(formData);
+  const effectiveSourceType = isLinkOnlyDocumentType(parsed.data.fileType)
+    ? "LINK"
+    : parsed.data.sourceType;
+
+  if (effectiveSourceType === "FILE" && !uploadedFile && !existing.storedFileName) {
+    return { fieldErrors: { file: "Select a file to upload" } };
+  }
+
   const projectCheck = await validateProjectForClient(
     parsed.data.projectId,
     parsed.data.clientId,
@@ -135,13 +196,50 @@ export async function updateDocumentAction(
     if (clientError) return { fieldErrors: { clientId: clientError } };
   }
 
+  let fileFields: Awaited<ReturnType<typeof saveDocumentFile>> | null = null;
+
+  if (effectiveSourceType === "FILE" && uploadedFile) {
+    try {
+      fileFields = await saveDocumentFile(uploadedFile, parsed.data.fileType);
+    } catch (error) {
+      return {
+        fieldErrors: {
+          file: error instanceof Error ? error.message : "Failed to save uploaded file",
+        },
+      };
+    }
+  } else if (effectiveSourceType === "FILE" && existing.storedFileName) {
+    fileFields = {
+      storedFileName: existing.storedFileName,
+      originalFileName: existing.originalFileName ?? existing.name,
+      mimeType: existing.mimeType ?? "application/octet-stream",
+      fileSize: existing.fileSize ?? 0,
+    };
+  }
+
   const document = await prisma.documentLink.update({
     where: { id },
-    data: documentInputToDbFields({
-      ...parsed.data,
-      clientId: resolvedClientId,
-    }),
+    data: documentInputToDbFields(
+      {
+        ...parsed.data,
+        clientId: resolvedClientId,
+      },
+      fileFields,
+    ),
   });
+
+  if (effectiveSourceType === "LINK" && existing.storedFileName) {
+    await deleteStoredDocumentFile(existing.storedFileName);
+  }
+
+  if (
+    effectiveSourceType === "FILE" &&
+    uploadedFile &&
+    existing.storedFileName &&
+    existing.storedFileName !== document.storedFileName
+  ) {
+    await deleteStoredDocumentFile(existing.storedFileName);
+  }
 
   revalidateDocumentPaths(id, document.clientId, document.projectId);
   if (existing.clientId !== document.clientId) {
@@ -163,6 +261,7 @@ export async function deleteDocumentAction(
   }
 
   await prisma.documentLink.delete({ where: { id } });
+  await deleteStoredDocumentFile(document.storedFileName);
   revalidateDocumentPaths(undefined, document.clientId, document.projectId);
   return { success: true };
 }

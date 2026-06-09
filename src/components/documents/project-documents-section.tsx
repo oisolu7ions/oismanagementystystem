@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { DocumentFileType } from "@/generated/prisma/client";
 import { DocumentDeleteButton } from "@/components/documents/document-delete-button";
 import { DocumentFileTypeBadge } from "@/components/documents/document-file-type-badge";
-import { DocumentOpenLinkButton } from "@/components/documents/document-open-link-button";
+import { DocumentAttachmentButton } from "@/components/documents/document-attachment-button";
+import type { DocumentSourceType } from "@/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Plus } from "lucide-react";
@@ -11,7 +12,8 @@ type ProjectDocument = {
   id: string;
   name: string;
   fileType: DocumentFileType;
-  url: string;
+  sourceType: DocumentSourceType;
+  url: string | null;
   notes: string | null;
   createdAt: Date;
 };
@@ -27,7 +29,7 @@ export function ProjectDocumentsSection({
     <Card>
       <CardHeader
         title="Documents"
-        description={`${documents.length} document link${documents.length === 1 ? "" : "s"}`}
+        description={`${documents.length} document${documents.length === 1 ? "" : "s"}`}
         action={
           <Link href={`/dashboard/documents/new?projectId=${projectId}`}>
             <Button size="sm">
@@ -42,13 +44,13 @@ export function ProjectDocumentsSection({
           <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center">
             <p className="text-sm font-medium text-slate-700">No documents yet</p>
             <p className="mt-1 text-sm text-slate-500">
-              Link project briefs, deliverables, and shared folders for this work.
+              Upload or link project briefs, deliverables, and shared files for this work.
             </p>
             <Link
               href={`/dashboard/documents/new?projectId=${projectId}`}
               className="mt-4 inline-block"
             >
-              <Button size="sm">Add document link</Button>
+              <Button size="sm">Add document</Button>
             </Link>
           </div>
         ) : (
@@ -89,7 +91,11 @@ export function ProjectDocumentsSection({
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap items-center justify-end gap-2">
-                        <DocumentOpenLinkButton url={doc.url} />
+                        <DocumentAttachmentButton
+                          documentId={doc.id}
+                          sourceType={doc.sourceType}
+                          url={doc.url}
+                        />
                         <Link href={`/dashboard/documents/${doc.id}/edit`}>
                           <Button type="button" variant="ghost" size="sm">
                             Edit

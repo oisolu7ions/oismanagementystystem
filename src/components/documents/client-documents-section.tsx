@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { DocumentFileType } from "@/generated/prisma/client";
 import { DocumentDeleteButton } from "@/components/documents/document-delete-button";
 import { DocumentFileTypeBadge } from "@/components/documents/document-file-type-badge";
-import { DocumentOpenLinkButton } from "@/components/documents/document-open-link-button";
+import { DocumentAttachmentButton } from "@/components/documents/document-attachment-button";
+import type { DocumentSourceType } from "@/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Plus } from "lucide-react";
@@ -11,7 +12,8 @@ type ClientDocument = {
   id: string;
   name: string;
   fileType: DocumentFileType;
-  url: string;
+  sourceType: DocumentSourceType;
+  url: string | null;
   notes: string | null;
   createdAt: Date;
   project: { id: string; name: string } | null;
@@ -28,7 +30,7 @@ export function ClientDocumentsSection({
     <Card>
       <CardHeader
         title="Documents"
-        description={`${documents.length} document link${documents.length === 1 ? "" : "s"}`}
+        description={`${documents.length} document${documents.length === 1 ? "" : "s"}`}
         action={
           <Link href={`/dashboard/documents/new?clientId=${clientId}`}>
             <Button size="sm">
@@ -43,13 +45,13 @@ export function ClientDocumentsSection({
           <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center">
             <p className="text-sm font-medium text-slate-700">No documents yet</p>
             <p className="mt-1 text-sm text-slate-500">
-              Attach contracts, proposals, branding folders, and other client file links.
+              Upload or link contracts, proposals, branding assets, and other client files.
             </p>
             <Link
               href={`/dashboard/documents/new?clientId=${clientId}`}
               className="mt-4 inline-block"
             >
-              <Button size="sm">Add document link</Button>
+              <Button size="sm">Add document</Button>
             </Link>
           </div>
         ) : (
@@ -105,7 +107,11 @@ export function ClientDocumentsSection({
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap items-center justify-end gap-2">
-                        <DocumentOpenLinkButton url={doc.url} />
+                        <DocumentAttachmentButton
+                          documentId={doc.id}
+                          sourceType={doc.sourceType}
+                          url={doc.url}
+                        />
                         <Link href={`/dashboard/documents/${doc.id}/edit`}>
                           <Button type="button" variant="ghost" size="sm">
                             Edit

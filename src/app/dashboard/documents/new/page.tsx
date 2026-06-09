@@ -53,10 +53,10 @@ export default async function NewDocumentPage({ searchParams }: NewDocumentPageP
         >
           {backLabel}
         </Link>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-900">New document link</h2>
+        <h2 className="mt-2 text-2xl font-semibold text-slate-900">New document</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Paste a URL to a contract, proposal, branding folder, or other client file. Files
-          are not uploaded to OIS Command Center.
+          Upload a file or paste a link to a contract, proposal, logo, brief, or other
+          client document.
         </p>
       </div>
 
