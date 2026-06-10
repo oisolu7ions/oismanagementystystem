@@ -9,7 +9,8 @@ import { TaskQuickStatusSelect } from "@/components/tasks/task-quick-status-sele
 import { TaskStatusBadge } from "@/components/tasks/task-status-badge";
 import { WebsiteBuildChecklistButton } from "@/components/tasks/website-build-checklist-button";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader } from "@/components/ui/card"
+import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { Plus } from "lucide-react";
 
 type ProjectTask = {
@@ -78,7 +79,7 @@ export function ProjectTasksSection({
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <ResponsiveTable>
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50">
                 <tr>
@@ -129,7 +130,7 @@ export function ProjectTasksSection({
                 ))}
               </tbody>
             </table>
-          </div>
+          </ResponsiveTable>
         )}
       </CardBody>
     </Card>

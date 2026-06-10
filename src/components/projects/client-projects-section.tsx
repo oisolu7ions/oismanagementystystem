@@ -4,7 +4,8 @@ import { formatProjectDate } from "@/lib/projects/constants";
 import { ProjectServiceTypeBadge } from "@/components/projects/project-service-type-badge";
 import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader } from "@/components/ui/card"
+import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { Plus } from "lucide-react";
 
 type ClientProject = {
@@ -52,7 +53,7 @@ export function ClientProjectsSection({
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <ResponsiveTable>
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50">
                 <tr>
@@ -94,7 +95,7 @@ export function ClientProjectsSection({
                 ))}
               </tbody>
             </table>
-          </div>
+          </ResponsiveTable>
         )}
       </CardBody>
     </Card>

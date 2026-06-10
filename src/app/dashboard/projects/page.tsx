@@ -13,7 +13,8 @@ import { ProjectServiceTypeBadge } from "@/components/projects/project-service-t
 import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
 import { formatProjectDate } from "@/lib/projects/constants";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader } from "@/components/ui/card"
+import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { Plus } from "lucide-react";
 
 type ProjectsPageProps = {
@@ -39,7 +40,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900">Projects</h2>
+          <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Projects</h2>
           <p className="mt-1 text-sm text-slate-500">
             Manage client deliverables — websites, integrations, dashboards, and more.
           </p>
@@ -87,7 +88,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
               ) : null}
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <ResponsiveTable>
               <table className="min-w-full divide-y divide-slate-200 text-sm">
                 <thead className="bg-slate-50">
                   <tr>
@@ -169,7 +170,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ResponsiveTable>
           )}
         </CardBody>
       </Card>

@@ -49,7 +49,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
             ← Back to projects
           </Link>
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <h2 className="text-2xl font-semibold text-slate-900">{project.name}</h2>
+            <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">{project.name}</h2>
             <ProjectStatusBadge status={project.status} />
             <ProjectServiceTypeBadge serviceType={project.serviceType} />
           </div>

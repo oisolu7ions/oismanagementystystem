@@ -3,7 +3,8 @@ import type { InvoiceStatus } from "@/generated/prisma/client";
 import { InvoiceDueDate } from "@/components/invoices/invoice-due-date";
 import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader } from "@/components/ui/card"
+import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { Plus } from "lucide-react";
 
 type ClientInvoice = {
@@ -51,7 +52,7 @@ export function ClientInvoicesSection({
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <ResponsiveTable>
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50">
                 <tr>
@@ -109,7 +110,7 @@ export function ClientInvoicesSection({
                 ))}
               </tbody>
             </table>
-          </div>
+          </ResponsiveTable>
         )}
       </CardBody>
     </Card>

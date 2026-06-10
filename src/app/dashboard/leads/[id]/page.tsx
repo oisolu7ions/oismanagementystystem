@@ -45,7 +45,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
             ← Back to leads
           </Link>
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <h2 className="text-2xl font-semibold text-slate-900">{lead.name}</h2>
+            <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">{lead.name}</h2>
             <LeadStatusBadge status={lead.status} />
           </div>
           {lead.businessName ? (

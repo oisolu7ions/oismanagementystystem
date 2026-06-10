@@ -34,7 +34,7 @@ export default async function NewProjectPage({ searchParams }: NewProjectPagePro
         >
           {backLabel}
         </Link>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-900">New project</h2>
+        <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New project</h2>
         <p className="mt-1 text-sm text-slate-500">
           Create a deliverable for a client — website, integration, dashboard, or other
           work.

@@ -32,7 +32,7 @@ export default async function EditLeadPage({ params }: EditLeadPageProps) {
         >
           ← Back to lead
         </Link>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+        <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Edit {lead.name}
         </h2>
       </div>

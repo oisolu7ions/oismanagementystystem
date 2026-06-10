@@ -39,7 +39,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             ← Back to invoices
           </Link>
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <h2 className="text-2xl font-semibold text-slate-900">
+            <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">
               {invoice.invoiceNumber}
             </h2>
             <InvoiceStatusBadge status={invoice.status} />

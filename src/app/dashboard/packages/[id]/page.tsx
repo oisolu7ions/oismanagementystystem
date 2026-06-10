@@ -36,7 +36,7 @@ export default async function PackageDetailPage({ params }: PackageDetailPagePro
             ← Back to packages
           </Link>
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <h2 className="text-2xl font-semibold text-slate-900">{pkg.name}</h2>
+            <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">{pkg.name}</h2>
             <PackageStatusBadge isActive={pkg.isActive} />
           </div>
           <p className="mt-1 text-sm text-slate-500">

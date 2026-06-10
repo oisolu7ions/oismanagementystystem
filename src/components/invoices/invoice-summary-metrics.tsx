@@ -4,7 +4,7 @@ import { Card, CardBody } from "@/components/ui/card";
 
 export function InvoiceSummaryMetrics({ summary }: { summary: InvoiceListSummary }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       <Card>
         <CardBody>
           <p className="text-sm text-slate-500">Unpaid invoices</p>

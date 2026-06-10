@@ -4,7 +4,8 @@ import { searchPackages } from "@/actions/packages";
 import { PackageSearch } from "@/components/packages/package-search";
 import { PackageStatusBadge } from "@/components/packages/package-status-badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader } from "@/components/ui/card"
+import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { Plus } from "lucide-react";
 
 type PackagesPageProps = {
@@ -23,7 +24,7 @@ export default async function PackagesPage({ searchParams }: PackagesPageProps) 
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900">Packages</h2>
+          <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Packages</h2>
           <p className="mt-1 text-sm text-slate-500">
             OIS service packages for websites, automation, and custom software.
           </p>
@@ -53,7 +54,7 @@ export default async function PackagesPage({ searchParams }: PackagesPageProps) 
                 : "No packages yet. Create one or run the seed command."}
             </p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <ResponsiveTable>
               <table className="min-w-full divide-y divide-slate-200 text-sm">
                 <thead className="bg-slate-50">
                   <tr>
@@ -114,7 +115,7 @@ export default async function PackagesPage({ searchParams }: PackagesPageProps) 
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ResponsiveTable>
           )}
         </CardBody>
       </Card>

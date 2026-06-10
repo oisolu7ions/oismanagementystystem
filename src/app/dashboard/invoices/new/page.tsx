@@ -44,7 +44,7 @@ export default async function NewInvoicePage({ searchParams }: NewInvoicePagePro
         >
           {backLabel}
         </Link>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-900">New invoice</h2>
+        <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New invoice</h2>
         <p className="mt-1 text-sm text-slate-500">
           Record an amount, due date, and optional manual payment link. Payments are
           not processed in OIS Command Center.

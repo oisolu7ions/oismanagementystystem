@@ -51,7 +51,7 @@ export default async function EditFollowUpPage({ params }: EditFollowUpPageProps
         >
           ← Back to follow-up
         </Link>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+        <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Edit {getFollowUpReasonLabel(followUp.reason)}
         </h2>
       </div>

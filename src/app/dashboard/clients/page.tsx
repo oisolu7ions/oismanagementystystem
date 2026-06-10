@@ -10,7 +10,8 @@ import { ClientSearch } from "@/components/clients/client-search";
 import { ClientStatusBadge } from "@/components/clients/client-status-badge";
 import { PackageBadge } from "@/components/clients/package-badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader } from "@/components/ui/card"
+import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { Plus } from "lucide-react";
 
 type ClientsPageProps = {
@@ -33,7 +34,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900">Clients</h2>
+          <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Clients</h2>
           <p className="mt-1 text-sm text-slate-500">
             Manage active clients, service packages, and monthly plans.
           </p>
@@ -78,26 +79,26 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
               ) : null}
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <ResponsiveTable>
               <table className="min-w-full divide-y divide-slate-200 text-sm">
                 <thead className="bg-slate-50">
                   <tr>
                     <th className="px-4 py-3 text-left font-medium text-slate-600">
                       Name
                     </th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-600">
+                    <th className="hidden px-4 py-3 text-left font-medium text-slate-600 md:table-cell">
                       Business
                     </th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-600">
+                    <th className="hidden px-4 py-3 text-left font-medium text-slate-600 md:table-cell">
                       Contact
                     </th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-600">
+                    <th className="hidden px-4 py-3 text-left font-medium text-slate-600 lg:table-cell">
                       Package
                     </th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-600">
+                    <th className="hidden px-4 py-3 text-left font-medium text-slate-600 lg:table-cell">
                       Monthly plan
                     </th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-600">
+                    <th className="hidden px-4 py-3 text-left font-medium text-slate-600 lg:table-cell">
                       Amount
                     </th>
                     <th className="px-4 py-3 text-left font-medium text-slate-600">
@@ -119,16 +120,16 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
                           {client.name}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-slate-600">
+                      <td className="hidden px-4 py-3 text-slate-600 md:table-cell">
                         {client.businessName ?? "—"}
                       </td>
-                      <td className="px-4 py-3 text-slate-600">
+                      <td className="hidden px-4 py-3 text-slate-600 md:table-cell">
                         <div>{client.email ?? "—"}</div>
                         {client.phone ? (
                           <div className="text-xs text-slate-500">{client.phone}</div>
                         ) : null}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="hidden px-4 py-3 lg:table-cell">
                         {client.package ? (
                           <PackageBadge
                             name={client.package.name}
@@ -138,10 +139,10 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
                           <span className="text-slate-400">—</span>
                         )}
                       </td>
-                      <td className="max-w-[160px] truncate px-4 py-3 text-slate-600">
+                      <td className="hidden max-w-[160px] truncate px-4 py-3 text-slate-600 lg:table-cell">
                         {client.monthlyPlan ?? "—"}
                       </td>
-                      <td className="px-4 py-3 text-slate-600">
+                      <td className="hidden px-4 py-3 text-slate-600 lg:table-cell">
                         {client.monthlyAmount ?? "—"}
                       </td>
                       <td className="px-4 py-3">
@@ -159,7 +160,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ResponsiveTable>
           )}
         </CardBody>
       </Card>

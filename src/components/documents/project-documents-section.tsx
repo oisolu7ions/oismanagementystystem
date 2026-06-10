@@ -5,7 +5,8 @@ import { DocumentFileTypeBadge } from "@/components/documents/document-file-type
 import { DocumentAttachmentButton } from "@/components/documents/document-attachment-button";
 import type { DocumentSourceType } from "@/generated/prisma/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader } from "@/components/ui/card"
+import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { Plus } from "lucide-react";
 
 type ProjectDocument = {
@@ -54,7 +55,7 @@ export function ProjectDocumentsSection({
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <ResponsiveTable>
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50">
                 <tr>
@@ -112,7 +113,7 @@ export function ProjectDocumentsSection({
                 ))}
               </tbody>
             </table>
-          </div>
+          </ResponsiveTable>
         )}
       </CardBody>
     </Card>

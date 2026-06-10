@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { Sidebar } from "@/components/layout/sidebar";
-import { DashboardHeader } from "@/components/layout/dashboard-header";
+import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { getSession } from "@/lib/auth/session";
 
 export default async function DashboardLayout({
@@ -13,13 +12,5 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <DashboardHeader session={session} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
-      </div>
-    </div>
-  );
+  return <DashboardShell session={session}>{children}</DashboardShell>;
 }

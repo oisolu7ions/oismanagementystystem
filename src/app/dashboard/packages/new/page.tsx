@@ -16,7 +16,7 @@ export default function NewPackagePage() {
         >
           ← Back to packages
         </Link>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-900">New package</h2>
+        <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New package</h2>
         <p className="mt-1 text-sm text-slate-500">
           Add a new OIS service package for clients and projects.
         </p>

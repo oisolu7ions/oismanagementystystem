@@ -18,7 +18,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-slate-900">Dashboard</h2>
+        <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Dashboard</h2>
         <p className="mt-1 text-sm text-slate-500">
           Real-time metrics across leads, clients, projects, tasks, billing, and
           follow-ups.

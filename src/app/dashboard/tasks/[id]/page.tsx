@@ -38,7 +38,7 @@ export default async function TaskDetailPage({ params }: TaskDetailPageProps) {
             ← Back to tasks
           </Link>
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <h2 className="text-2xl font-semibold text-slate-900">{task.title}</h2>
+            <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">{task.title}</h2>
             <TaskStatusBadge status={task.status} />
             <TaskPriorityBadge priority={task.priority} />
           </div>

@@ -4,7 +4,8 @@ import { FollowUpDueDate } from "@/components/follow-ups/follow-up-due-date";
 import { FollowUpReasonBadge } from "@/components/follow-ups/follow-up-reason-badge";
 import { FollowUpStatusBadge } from "@/components/follow-ups/follow-up-status-badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader } from "@/components/ui/card"
+import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { Plus } from "lucide-react";
 
 type LeadFollowUp = {
@@ -50,7 +51,7 @@ export function LeadFollowUpsSection({
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <ResponsiveTable>
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50">
                 <tr>
@@ -89,7 +90,7 @@ export function LeadFollowUpsSection({
                 ))}
               </tbody>
             </table>
-          </div>
+          </ResponsiveTable>
         )}
       </CardBody>
     </Card>

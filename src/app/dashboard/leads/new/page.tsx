@@ -16,7 +16,7 @@ export default function NewLeadPage() {
         >
           ← Back to leads
         </Link>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-900">New lead</h2>
+        <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New lead</h2>
         <p className="mt-1 text-sm text-slate-500">
           Add a potential client to your pipeline.
         </p>

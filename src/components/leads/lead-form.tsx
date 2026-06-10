@@ -92,7 +92,7 @@ export function LeadForm({ mode, leadId, initialValues }: LeadFormProps) {
         placeholder="e.g. Growth package, custom dashboard"
       />
 
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <div className="space-y-1.5">
           <label htmlFor="status" className="block text-sm font-medium text-slate-700">
             Status

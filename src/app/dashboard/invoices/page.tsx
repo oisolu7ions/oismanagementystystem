@@ -13,7 +13,8 @@ import { InvoiceSearch } from "@/components/invoices/invoice-search";
 import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
 import { InvoiceSummaryMetrics } from "@/components/invoices/invoice-summary-metrics";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader } from "@/components/ui/card"
+import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { Plus } from "lucide-react";
 
 type InvoicesPageProps = {
@@ -40,7 +41,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900">Invoices</h2>
+          <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Invoices</h2>
           <p className="mt-1 text-sm text-slate-500">
             Track billing, due dates, and manual payment links — no payment processing
             in-app.
@@ -90,7 +91,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
               ) : null}
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <ResponsiveTable>
               <table className="min-w-full divide-y divide-slate-200 text-sm">
                 <thead className="bg-slate-50">
                   <tr>
@@ -187,7 +188,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ResponsiveTable>
           )}
         </CardBody>
       </Card>

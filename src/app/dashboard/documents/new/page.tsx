@@ -53,7 +53,7 @@ export default async function NewDocumentPage({ searchParams }: NewDocumentPageP
         >
           {backLabel}
         </Link>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-900">New document</h2>
+        <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New document</h2>
         <p className="mt-1 text-sm text-slate-500">
           Upload a file or paste a link to a contract, proposal, logo, brief, or other
           client document.

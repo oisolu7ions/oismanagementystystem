@@ -34,7 +34,7 @@ export default async function EditClientPage({ params }: EditClientPageProps) {
         >
           ← Back to client
         </Link>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+        <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Edit {client.name}
         </h2>
       </div>

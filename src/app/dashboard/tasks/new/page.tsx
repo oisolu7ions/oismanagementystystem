@@ -30,7 +30,7 @@ export default async function NewTaskPage({ searchParams }: NewTaskPageProps) {
         >
           {backLabel}
         </Link>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-900">New task</h2>
+        <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New task</h2>
         <p className="mt-1 text-sm text-slate-500">
           Add a task to a project and set priority and due date.
         </p>

@@ -86,7 +86,7 @@ export function DashboardStatCards({
                   <p className="text-sm text-slate-500">{stat.label}</p>
                   <Icon className="h-4 w-4 text-slate-400" />
                 </div>
-                <p className="mt-2 text-3xl font-semibold text-slate-900">
+                <p className="mt-2 text-2xl font-semibold text-slate-900 sm:text-3xl">
                   {stat.value}
                 </p>
               </CardBody>

@@ -66,7 +66,7 @@ export default async function ClientDetailPage({
             ← Back to clients
           </Link>
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <h2 className="text-2xl font-semibold text-slate-900">{client.name}</h2>
+            <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">{client.name}</h2>
             <ClientStatusBadge status={client.status} />
           </div>
           {client.businessName ? (

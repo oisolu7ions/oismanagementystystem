@@ -11,7 +11,8 @@ import { DocumentFilters } from "@/components/documents/document-filters";
 import { DocumentAttachmentButton } from "@/components/documents/document-attachment-button";
 import { DocumentSearch } from "@/components/documents/document-search";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader } from "@/components/ui/card"
+import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { Plus } from "lucide-react";
 
 type DocumentsPageProps = {
@@ -37,7 +38,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900">Documents</h2>
+          <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Documents</h2>
           <p className="mt-1 text-sm text-slate-500">
             Upload files or link external documents for clients and projects — contracts,
             proposals, logos, briefs, and more.
@@ -85,7 +86,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
               ) : null}
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <ResponsiveTable>
               <table className="min-w-full divide-y divide-slate-200 text-sm">
                 <thead className="bg-slate-50">
                   <tr>
@@ -167,7 +168,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ResponsiveTable>
           )}
         </CardBody>
       </Card>
