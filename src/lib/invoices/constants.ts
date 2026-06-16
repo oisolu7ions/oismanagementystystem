@@ -1,3 +1,31 @@
+export const INVOICE_RECURRENCE_INTERVAL_VALUES = [
+  "WEEKLY",
+  "BIWEEKLY",
+  "MONTHLY",
+  "QUARTERLY",
+  "YEARLY",
+] as const;
+
+export type InvoiceRecurrenceIntervalValue =
+  (typeof INVOICE_RECURRENCE_INTERVAL_VALUES)[number];
+
+export const invoiceRecurrenceOptions: {
+  value: InvoiceRecurrenceIntervalValue;
+  label: string;
+}[] = [
+  { value: "WEEKLY", label: "Weekly" },
+  { value: "BIWEEKLY", label: "Every 2 weeks" },
+  { value: "MONTHLY", label: "Monthly" },
+  { value: "QUARTERLY", label: "Quarterly" },
+  { value: "YEARLY", label: "Yearly" },
+];
+
+export function getInvoiceRecurrenceLabel(
+  interval: InvoiceRecurrenceIntervalValue | string,
+): string {
+  return invoiceRecurrenceOptions.find((o) => o.value === interval)?.label ?? interval;
+}
+
 export const INVOICE_STATUS_VALUES = [
   "DRAFT",
   "SENT",

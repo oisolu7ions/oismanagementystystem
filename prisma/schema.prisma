@@ -87,6 +87,14 @@ enum InvoiceStatus {
   CANCELLED
 }
 
+enum InvoiceRecurrenceInterval {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
 enum FollowUpStatus {
   PENDING
   COMPLETED
@@ -256,20 +264,43 @@ model Task {
 }
 
 model Invoice {
-  id            String        @id @default(cuid())
-  invoiceNumber String        @unique
-  amount        String
-  status        InvoiceStatus @default(DRAFT)
-  dueDate       DateTime?
-  paidAt        DateTime?
-  paymentLink   String?
-  notes         String?       @db.Text
-  clientId      String
-  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  projectId     String?
-  project       Project?      @relation(fields: [projectId], references: [id])
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                 String                     @id @default(cuid())
+  invoiceNumber      String                     @unique
+  amount             String
+  status             InvoiceStatus              @default(DRAFT)
+  dueDate            DateTime?
+  paidAt             DateTime?
+  paymentLink        String?
+  notes              String?                    @db.Text
+  isRecurring        Boolean                    @default(false)
+  recurrenceInterval InvoiceRecurrenceInterval?
+  clientId           String
+  client             Client                     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId          String?
+  project            Project?                   @relation(fields: [projectId], references: [id])
+  receipts           Receipt[]
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+}
+
+model Receipt {
+  id               String   @id @default(cuid())
+  receiptNumber    String   @unique
+  invoiceId        String
+  invoice          Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount           String
+  paidAt           DateTime
+  billingPeriod    String?
+  clientName       String
+  clientBusiness   String?
+  clientEmail      String?
+  storedFileName   String
+  originalFileName String
+  mimeType         String   @default("application/pdf")
+  fileSize         Int
+  createdAt        DateTime @default(now())
+
+  @@unique([invoiceId, billingPeriod])
 }
 
 model FollowUp {

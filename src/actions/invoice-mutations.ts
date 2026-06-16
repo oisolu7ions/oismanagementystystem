@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import type { InvoiceStatus } from "@/generated/prisma/client";
 import type { InvoiceActionState } from "@/lib/invoices/action-state";
 import { getNextInvoiceNumberFromExisting } from "@/lib/invoices/invoice-number";
+import { maybeGenerateReceiptOnPayment } from "@/lib/receipts/create-receipt";
+import { deleteStoredReceiptFile } from "@/lib/receipts/storage";
 import { prisma } from "@/lib/prisma";
 import { invoiceFormSchema, invoiceInputToDbFields } from "@/lib/validators/invoice";
 
@@ -48,6 +50,8 @@ function parseInvoiceFormData(formData: FormData) {
     status: formData.get("status") ?? "DRAFT",
     paymentLink: formData.get("paymentLink") ?? undefined,
     notes: formData.get("notes") ?? undefined,
+    isRecurring: formData.get("isRecurring") ?? undefined,
+    recurrenceInterval: formData.get("recurrenceInterval") ?? undefined,
     autoGenerateNumber: formData.get("autoGenerateNumber") ?? undefined,
   });
 }
@@ -142,6 +146,15 @@ export async function createInvoiceAction(
     },
   });
 
+  if (invoice.status === "PAID" && invoice.paidAt) {
+    await maybeGenerateReceiptOnPayment(
+      invoice.id,
+      "DRAFT",
+      invoice.status,
+      invoice.paidAt,
+    );
+  }
+
   revalidateInvoicePaths(invoice.id, invoice.clientId, invoice.projectId);
   redirect(`/dashboard/invoices/${invoice.id}`);
 }
@@ -186,18 +199,27 @@ export async function updateInvoiceAction(
     invoiceNumber: numberResult.invoiceNumber!,
   });
 
+  const paidAt =
+    fields.status === "PAID"
+      ? existing.paidAt ?? new Date()
+      : fields.status === "CANCELLED"
+        ? null
+        : existing.paidAt;
+
   const invoice = await prisma.invoice.update({
     where: { id },
     data: {
       ...fields,
-      paidAt:
-        fields.status === "PAID"
-          ? existing.paidAt ?? new Date()
-          : fields.status === "CANCELLED"
-            ? null
-            : existing.paidAt,
+      paidAt,
     },
   });
+
+  await maybeGenerateReceiptOnPayment(
+    id,
+    existing.status,
+    invoice.status,
+    invoice.paidAt,
+  );
 
   revalidateInvoicePaths(id, invoice.clientId, invoice.projectId);
   if (existing.clientId !== invoice.clientId) {
@@ -213,12 +235,20 @@ export async function updateInvoiceAction(
 export async function deleteInvoiceAction(
   id: string,
 ): Promise<InvoiceActionState & { success?: boolean }> {
-  const invoice = await prisma.invoice.findUnique({ where: { id } });
+  const [invoice, receipts] = await Promise.all([
+    prisma.invoice.findUnique({ where: { id } }),
+    prisma.receipt.findMany({
+      where: { invoiceId: id },
+      select: { storedFileName: true },
+    }),
+  ]);
+
   if (!invoice) {
     return { error: "Invoice not found" };
   }
 
   await prisma.invoice.delete({ where: { id } });
+  await Promise.all(receipts.map((receipt) => deleteStoredReceiptFile(receipt.storedFileName)));
   revalidateInvoicePaths(undefined, invoice.clientId, invoice.projectId);
   return { success: true };
 }
@@ -232,13 +262,22 @@ export async function updateInvoiceStatusAction(
     return { error: "Invoice not found" };
   }
 
+  const paidAt = status === "PAID" ? invoice.paidAt ?? new Date() : null;
+
   await prisma.invoice.update({
     where: { id: invoiceId },
     data: {
       status,
-      paidAt: status === "PAID" ? invoice.paidAt ?? new Date() : null,
+      paidAt,
     },
   });
+
+  await maybeGenerateReceiptOnPayment(
+    invoiceId,
+    invoice.status,
+    status,
+    paidAt,
+  );
 
   revalidateInvoicePaths(invoiceId, invoice.clientId, invoice.projectId);
   return { success: true };

@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getInvoiceById } from "@/actions/invoices";
+import { getReceiptsByInvoiceId } from "@/actions/receipts";
 import { InvoiceDeleteButton } from "@/components/invoices/invoice-delete-button";
 import { InvoiceDueDate } from "@/components/invoices/invoice-due-date";
 import { InvoicePaymentLink } from "@/components/invoices/invoice-payment-link";
+import { InvoiceRecurrenceBadge } from "@/components/invoices/invoice-recurrence-badge";
+import { InvoiceRecurringReceiptActions } from "@/components/invoices/invoice-recurring-receipt-actions";
 import { InvoiceQuickStatusSelect } from "@/components/invoices/invoice-quick-status-select";
+import { InvoiceReceiptsSection } from "@/components/invoices/invoice-receipts-section";
 import { InvoiceStatusActions } from "@/components/invoices/invoice-status-actions";
 import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
+import { getInvoiceRecurrenceLabel } from "@/lib/invoices/constants";
+import {
+  formatBillingPeriodLabel,
+  getBillingPeriodKey,
+} from "@/lib/receipts/billing-period";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
@@ -22,11 +31,26 @@ export async function generateMetadata({ params }: InvoiceDetailPageProps) {
 
 export default async function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
   const { id } = await params;
-  const invoice = await getInvoiceById(id);
+  const [invoice, receipts] = await Promise.all([
+    getInvoiceById(id),
+    getReceiptsByInvoiceId(id),
+  ]);
 
   if (!invoice) {
     notFound();
   }
+
+  const currentBillingPeriod =
+    invoice.isRecurring && invoice.recurrenceInterval
+      ? getBillingPeriodKey(invoice.recurrenceInterval)
+      : null;
+  const currentPeriodLabel =
+    currentBillingPeriod && invoice.recurrenceInterval
+      ? formatBillingPeriodLabel(currentBillingPeriod, invoice.recurrenceInterval)
+      : null;
+  const hasCurrentPeriodReceipt = currentBillingPeriod
+    ? receipts.some((receipt) => receipt.billingPeriod === currentBillingPeriod)
+    : false;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -43,6 +67,10 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
               {invoice.invoiceNumber}
             </h2>
             <InvoiceStatusBadge status={invoice.status} />
+            <InvoiceRecurrenceBadge
+              isRecurring={invoice.isRecurring}
+              recurrenceInterval={invoice.recurrenceInterval}
+            />
           </div>
           <p className="mt-1 text-lg font-medium text-slate-700">{invoice.amount}</p>
         </div>
@@ -77,6 +105,31 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
           </div>
         </CardBody>
       </Card>
+
+      {invoice.isRecurring &&
+      invoice.recurrenceInterval &&
+      currentPeriodLabel &&
+      invoice.status !== "CANCELLED" ? (
+        <Card>
+          <CardHeader
+            title="Recurring receipt"
+            description="Generate a PDF receipt for the current billing period"
+          />
+          <CardBody>
+            <InvoiceRecurringReceiptActions
+              invoiceId={invoice.id}
+              currentPeriodLabel={currentPeriodLabel}
+              hasCurrentPeriodReceipt={hasCurrentPeriodReceipt}
+            />
+          </CardBody>
+        </Card>
+      ) : null}
+
+      <InvoiceReceiptsSection
+        receipts={receipts}
+        isRecurring={invoice.isRecurring}
+        recurrenceInterval={invoice.recurrenceInterval}
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -129,6 +182,16 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             </p>
             <p className="mt-1">
               <InvoiceDueDate dueDate={invoice.dueDate} status={invoice.status} />
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+              Recurrence
+            </p>
+            <p className="mt-1 text-slate-900">
+              {invoice.isRecurring && invoice.recurrenceInterval
+                ? getInvoiceRecurrenceLabel(invoice.recurrenceInterval)
+                : "One-time invoice"}
             </p>
           </div>
           <div>

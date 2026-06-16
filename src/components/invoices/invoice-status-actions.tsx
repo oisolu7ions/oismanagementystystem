@@ -55,7 +55,7 @@ export function InvoiceStatusActions({
           disabled={pending}
           onClick={() => setStatus("PAID")}
         >
-          Mark as Paid
+          Mark as Paid & generate receipt
         </Button>
       ) : null}
       {currentStatus !== "OVERDUE" && !isFinal ? (

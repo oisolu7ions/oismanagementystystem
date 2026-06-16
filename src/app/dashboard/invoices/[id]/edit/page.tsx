@@ -66,6 +66,8 @@ export default async function EditInvoicePage({ params }: EditInvoicePageProps) 
               dueDate: invoiceDateToInputValue(invoice.dueDate),
               paymentLink: invoice.paymentLink ?? undefined,
               notes: invoice.notes ?? undefined,
+              isRecurring: invoice.isRecurring,
+              recurrenceInterval: invoice.recurrenceInterval ?? undefined,
             }}
           />
         </CardBody>

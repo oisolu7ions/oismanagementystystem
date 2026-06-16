@@ -7,9 +7,12 @@ import {
   searchInvoices,
   type InvoiceSearchParams,
 } from "@/actions/invoices";
+import { getDueRecurringReceiptsSummary } from "@/actions/receipt-mutations";
 import { InvoiceDueDate } from "@/components/invoices/invoice-due-date";
 import { InvoiceFilters } from "@/components/invoices/invoice-filters";
 import { InvoiceSearch } from "@/components/invoices/invoice-search";
+import { InvoiceRecurrenceBadge } from "@/components/invoices/invoice-recurrence-badge";
+import { RecurringReceiptsBatchActions } from "@/components/invoices/recurring-receipts-batch-actions";
 import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
 import { InvoiceSummaryMetrics } from "@/components/invoices/invoice-summary-metrics";
 import { Button } from "@/components/ui/button";
@@ -27,11 +30,12 @@ export const metadata = {
 
 export default async function InvoicesPage({ searchParams }: InvoicesPageProps) {
   const params = await searchParams;
-  const [invoices, clients, projects, summary] = await Promise.all([
+  const [invoices, clients, projects, summary, recurringDue] = await Promise.all([
     searchInvoices(params),
     getClientsForInvoiceFilter(),
     getProjectsForInvoiceFilter(),
     getInvoiceListSummary(params),
+    getDueRecurringReceiptsSummary(),
   ]);
   const hasFilters = Boolean(
     params.q || params.status || params.clientId || params.projectId,
@@ -56,6 +60,11 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
       </div>
 
       <InvoiceSummaryMetrics summary={summary} />
+
+      <RecurringReceiptsBatchActions
+        dueCount={recurringDue.count}
+        dueInvoices={recurringDue.due}
+      />
 
       <Card>
         <CardHeader
@@ -131,6 +140,14 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
                         >
                           {invoice.invoiceNumber}
                         </Link>
+                        {invoice.isRecurring ? (
+                          <div className="mt-1">
+                            <InvoiceRecurrenceBadge
+                              isRecurring={invoice.isRecurring}
+                              recurrenceInterval={invoice.recurrenceInterval}
+                            />
+                          </div>
+                        ) : null}
                       </td>
                       <td className="px-4 py-3 text-slate-600">
                         <Link

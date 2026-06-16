@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useActionState } from "react";
 import type { InvoiceActionState } from "@/lib/invoices/action-state";
-import { invoiceStatusOptions } from "@/lib/invoices/constants";
+import { invoiceRecurrenceOptions, invoiceStatusOptions } from "@/lib/invoices/constants";
 import type { InvoiceFormInput } from "@/lib/validators/invoice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,9 +56,11 @@ export function InvoiceForm({
   const [useAutoNumber, setUseAutoNumber] = useState(
     mode === "create" && !initialValues?.invoiceNumber,
   );
+  const [isRecurring, setIsRecurring] = useState(initialValues?.isRecurring ?? false);
 
   const status = initialValues?.status ?? "DRAFT";
   const projectId = initialValues?.projectId ?? "";
+  const recurrenceInterval = initialValues?.recurrenceInterval ?? "MONTHLY";
 
   const visibleProjects = useMemo(
     () => (clientId ? projects.filter((p) => p.clientId === clientId) : projects),
@@ -229,6 +231,55 @@ export function InvoiceForm({
           placeholder="https://pay.example.com/..."
           error={state.fieldErrors?.paymentLink}
         />
+      </div>
+
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <input type="hidden" name="isRecurring" value={isRecurring ? "true" : "false"} />
+        <label className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            checked={isRecurring}
+            onChange={(event) => setIsRecurring(event.target.checked)}
+            className="mt-0.5 rounded border-slate-300"
+          />
+          <span>
+            <span className="block text-sm font-medium text-slate-800">
+              Recurring invoice
+            </span>
+            <span className="mt-0.5 block text-xs text-slate-500">
+              Use for retainers, monthly plans, or other repeat billing.
+            </span>
+          </span>
+        </label>
+
+        {isRecurring ? (
+          <div className="mt-4 space-y-1.5">
+            <label
+              htmlFor="recurrenceInterval"
+              className="block text-sm font-medium text-slate-700"
+            >
+              How often
+            </label>
+            <select
+              id="recurrenceInterval"
+              name="recurrenceInterval"
+              defaultValue={recurrenceInterval}
+              required
+              className={selectClass}
+            >
+              {invoiceRecurrenceOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {state.fieldErrors?.recurrenceInterval ? (
+              <p className="text-xs text-red-600">{state.fieldErrors.recurrenceInterval}</p>
+            ) : null}
+          </div>
+        ) : (
+          <input type="hidden" name="recurrenceInterval" value="" />
+        )}
       </div>
 
       <Textarea

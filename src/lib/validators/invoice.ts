@@ -1,6 +1,9 @@
 import { z } from "zod";
-import type { InvoiceStatus } from "@/generated/prisma/client";
-import { INVOICE_STATUS_VALUES } from "@/lib/invoices/constants";
+import type { InvoiceRecurrenceInterval, InvoiceStatus } from "@/generated/prisma/client";
+import {
+  INVOICE_RECURRENCE_INTERVAL_VALUES,
+  INVOICE_STATUS_VALUES,
+} from "@/lib/invoices/constants";
 
 const optionalString = z
   .string()
@@ -20,23 +23,41 @@ const optionalUrl = z
     ]),
   );
 
-export const invoiceFormSchema = z.object({
-  invoiceNumber: z.string().trim().min(1, "Invoice number is required"),
-  clientId: z.string().trim().min(1, "Client is required"),
-  projectId: z.preprocess(
-    (value) => (value === "" || value === null || value === undefined ? undefined : value),
-    z.string().optional(),
-  ),
-  amount: z.string().trim().min(1, "Amount is required"),
-  dueDate: optionalString,
-  status: z.enum(INVOICE_STATUS_VALUES, { message: "Status is required" }),
-  paymentLink: optionalUrl,
-  notes: optionalString,
-  autoGenerateNumber: z.preprocess(
-    (value) => value === "true" || value === true,
-    z.boolean().optional(),
-  ),
-});
+export const invoiceFormSchema = z
+  .object({
+    invoiceNumber: z.string().trim().min(1, "Invoice number is required"),
+    clientId: z.string().trim().min(1, "Client is required"),
+    projectId: z.preprocess(
+      (value) => (value === "" || value === null || value === undefined ? undefined : value),
+      z.string().optional(),
+    ),
+    amount: z.string().trim().min(1, "Amount is required"),
+    dueDate: optionalString,
+    status: z.enum(INVOICE_STATUS_VALUES, { message: "Status is required" }),
+    paymentLink: optionalUrl,
+    notes: optionalString,
+    isRecurring: z.preprocess(
+      (value) => value === "true" || value === true,
+      z.boolean().optional().default(false),
+    ),
+    recurrenceInterval: z.preprocess(
+      (value) => (value === "" || value === null || value === undefined ? undefined : value),
+      z.enum(INVOICE_RECURRENCE_INTERVAL_VALUES).optional(),
+    ),
+    autoGenerateNumber: z.preprocess(
+      (value) => value === "true" || value === true,
+      z.boolean().optional(),
+    ),
+  })
+  .superRefine((data, ctx) => {
+    if (data.isRecurring && !data.recurrenceInterval) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Select how often this invoice recurs",
+        path: ["recurrenceInterval"],
+      });
+    }
+  });
 
 export type InvoiceFormInput = z.infer<typeof invoiceFormSchema>;
 
@@ -48,6 +69,7 @@ export function parseInvoiceDueDate(value?: string): Date | null {
 
 export function invoiceInputToDbFields(input: InvoiceFormInput) {
   const status = input.status as InvoiceStatus;
+  const isRecurring = input.isRecurring ?? false;
 
   return {
     invoiceNumber: input.invoiceNumber,
@@ -58,6 +80,10 @@ export function invoiceInputToDbFields(input: InvoiceFormInput) {
     status,
     paymentLink: input.paymentLink ?? null,
     notes: input.notes ?? null,
+    isRecurring,
+    recurrenceInterval: isRecurring
+      ? (input.recurrenceInterval as InvoiceRecurrenceInterval)
+      : null,
     paidAt: status === "PAID" ? new Date() : null,
   };
 }
