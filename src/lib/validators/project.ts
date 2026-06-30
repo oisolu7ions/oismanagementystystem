@@ -4,6 +4,7 @@ import {
   PROJECT_STATUS_VALUES,
   SERVICE_TYPE_VALUES,
 } from "@/lib/projects/constants";
+import { projectSharingSchema } from "@/lib/validators/client-sharing";
 
 const optionalString = z
   .string()
@@ -11,7 +12,7 @@ const optionalString = z
   .optional()
   .transform((value) => (value === "" ? undefined : value));
 
-export const projectFormSchema = z.object({
+export const projectFormSchema = projectSharingSchema.extend({
   name: z.string().trim().min(1, "Project name is required"),
   clientId: z.string().trim().min(1, "Client is required"),
   packageId: z.preprocess(
@@ -47,5 +48,8 @@ export function projectInputToDbFields(input: ProjectFormInput) {
     dueDate: parseProjectDate(input.dueDate),
     price: input.price ?? null,
     monthlyFee: input.monthlyFee ?? null,
+    clientVisible: input.clientVisible ?? false,
+    clientSummary: input.clientSummary ?? null,
+    clientStatusNote: input.clientStatusNote ?? null,
   };
 }

@@ -134,15 +134,67 @@ enum DocumentSourceType {
 }
 
 enum ActivityType {
-  NOTE
-  STATUS_CHANGE
-  EMAIL
-  CALL
-  MEETING
-  INVOICE
-  PROJECT
-  TASK
-  SYSTEM
+  LEAD_CREATED
+  LEAD_UPDATED
+  LEAD_CONVERTED
+  CLIENT_CREATED
+  CLIENT_UPDATED
+  PROJECT_CREATED
+  PROJECT_UPDATED
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_COMPLETED
+  INVOICE_CREATED
+  INVOICE_UPDATED
+  INVOICE_SENT
+  INVOICE_PAID
+  FOLLOW_UP_CREATED
+  FOLLOW_UP_UPDATED
+  FOLLOW_UP_COMPLETED
+  NOTE_CREATED
+  NOTE_UPDATED
+  DOCUMENT_CREATED
+  DOCUMENT_UPDATED
+  UPDATE_REQUEST_CREATED
+  UPDATE_REQUEST_UPDATED
+  UPDATE_REQUEST_STATUS_CHANGED
+  UPDATE_REQUEST_COMPLETED
+  UPDATE_REQUEST_ATTACHMENT_ADDED
+}
+
+enum UpdateRequestType {
+  WEBSITE_CONTENT_UPDATE
+  WEBSITE_DESIGN_UPDATE
+  WEBSITE_BUG_FIX
+  NEW_WEBSITE_PAGE
+  FORM_UPDATE
+  SYSTEM_FEATURE_REQUEST
+  DASHBOARD_UPDATE
+  AUTOMATION_UPDATE
+  CLIENT_PORTAL_UPDATE
+  FILE_ASSET_UPDATE
+  GENERAL_SUPPORT
+  OTHER
+}
+
+enum UpdateRequestPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum UpdateRequestStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  NEEDS_MORE_INFORMATION
+  APPROVED
+  SCHEDULED
+  IN_PROGRESS
+  WAITING_ON_CLIENT
+  COMPLETED
+  DECLINED
+  CANCELLED
 }
 
 model User {
@@ -154,8 +206,7 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  assignedTasks Task[]     @relation("AssignedTasks")
-  activities    Activity[]
+  assignedTasks Task[] @relation("AssignedTasks")
   notes         Note[]
 }
 
@@ -206,6 +257,24 @@ model Client {
   activities    Activity[]
   followUps     FollowUp[]
   documentLinks DocumentLink[]
+  clientUsers   ClientUser[]
+  updateRequests UpdateRequest[]
+}
+
+model ClientUser {
+  id           String    @id @default(cuid())
+  clientId     String
+  client       Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name         String
+  email        String    @unique
+  passwordHash String
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  updateRequests UpdateRequest[]
+  uploadedAttachments UpdateRequestAttachment[]
 }
 
 model Package {
@@ -237,6 +306,9 @@ model Project {
   monthlyFee  String?
   startDate   DateTime?
   dueDate     DateTime?
+  clientVisible    Boolean   @default(false)
+  clientSummary    String?   @db.Text
+  clientStatusNote String?   @db.Text
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -245,6 +317,7 @@ model Project {
   notes         Note[]
   activities    Activity[]
   documentLinks DocumentLink[]
+  updateRequests UpdateRequest[]
 }
 
 model Task {
@@ -259,8 +332,14 @@ model Task {
   assignee    User?        @relation("AssignedTasks", fields: [assigneeId], references: [id])
   dueDate     DateTime?
   completedAt DateTime?
+  clientVisible Boolean    @default(false)
+  clientNote    String?    @db.Text
+  updateRequestId String?  @unique
+  updateRequest   UpdateRequest? @relation(fields: [updateRequestId], references: [id], onDelete: SetNull)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+
+  activities Activity[]
 }
 
 model Invoice {
@@ -274,11 +353,14 @@ model Invoice {
   notes              String?                    @db.Text
   isRecurring        Boolean                    @default(false)
   recurrenceInterval InvoiceRecurrenceInterval?
+  clientVisible      Boolean                    @default(true)
+  clientNote         String?                    @db.Text
   clientId           String
   client             Client                     @relation(fields: [clientId], references: [id], onDelete: Cascade)
   projectId          String?
   project            Project?                   @relation(fields: [projectId], references: [id])
   receipts           Receipt[]
+  activities         Activity[]
   createdAt          DateTime                   @default(now())
   updatedAt          DateTime                   @updatedAt
 }
@@ -314,6 +396,7 @@ model FollowUp {
   lead         Lead?            @relation(fields: [leadId], references: [id], onDelete: Cascade)
   clientId     String?
   client       Client?          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  activities   Activity[]
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 }
@@ -328,26 +411,37 @@ model Note {
   clientId  String?
   client    Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
   projectId String?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  project    Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  activities Activity[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 }
 
 model Activity {
-  id          String       @id @default(cuid())
-  type        ActivityType
-  title       String
-  description String?      @db.Text
-  metadata    Json?
-  authorId    String?
-  author      User?        @relation(fields: [authorId], references: [id])
-  leadId      String?
-  lead        Lead?        @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  clientId    String?
-  client      Client?      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  projectId   String?
-  project     Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt   DateTime     @default(now())
+  id             String       @id @default(cuid())
+  type           ActivityType
+  message        String
+  clientVisible  Boolean      @default(false)
+  clientMessage  String?      @db.Text
+  leadId         String?
+  lead           Lead?        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  clientId       String?
+  client         Client?      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId      String?
+  project        Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskId         String?
+  task           Task?        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  invoiceId      String?
+  invoice        Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  followUpId     String?
+  followUp       FollowUp?    @relation(fields: [followUpId], references: [id], onDelete: Cascade)
+  noteId         String?
+  note           Note?        @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  documentLinkId String?
+  documentLink   DocumentLink? @relation(fields: [documentLinkId], references: [id], onDelete: Cascade)
+  updateRequestId String?
+  updateRequest   UpdateRequest? @relation(fields: [updateRequestId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
 }
 
 model DocumentLink {
@@ -361,10 +455,58 @@ model DocumentLink {
   mimeType         String?
   fileSize         Int?
   notes            String?            @db.Text
+  clientVisible    Boolean            @default(false)
+  clientDescription String?           @db.Text
   clientId         String?
   client           Client?            @relation(fields: [clientId], references: [id], onDelete: Cascade)
   projectId        String?
   project          Project?           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  activities       Activity[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+}
+
+model UpdateRequest {
+  id                      String                 @id @default(cuid())
+  clientId                String
+  client                  Client                 @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId               String?
+  project                 Project?               @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  requestedByClientUserId String?
+  requestedByClientUser   ClientUser?            @relation(fields: [requestedByClientUserId], references: [id], onDelete: SetNull)
+  title                   String
+  requestType             UpdateRequestType
+  priority                UpdateRequestPriority  @default(NORMAL)
+  status                  UpdateRequestStatus    @default(SUBMITTED)
+  description             String                 @db.Text
+  adminNotes              String?                @db.Text
+  clientVisibleResponse   String?                @db.Text
+  estimatedPrice          String?
+  approvedPrice           String?
+  dueDate                 DateTime?
+  completedAt             DateTime?
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+
+  attachments UpdateRequestAttachment[]
+  activities  Activity[]
+  linkedTask  Task?
+}
+
+model UpdateRequestAttachment {
+  id                       String         @id @default(cuid())
+  updateRequestId          String
+  updateRequest            UpdateRequest  @relation(fields: [updateRequestId], references: [id], onDelete: Cascade)
+  fileName                 String?
+  fileType                 String?
+  fileSize                 Int?
+  storedFileName           String?
+  mimeType                 String?
+  fileUrl                  String?
+  externalUrl              String?
+  notes                    String?        @db.Text
+  uploadedByClientUserId   String?
+  uploadedByClientUser     ClientUser?    @relation(fields: [uploadedByClientUserId], references: [id], onDelete: SetNull)
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
 }

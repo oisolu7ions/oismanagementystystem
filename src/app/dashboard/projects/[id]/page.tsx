@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProjectById } from "@/actions/projects";
+import { getActivityByProjectId } from "@/actions/activity";
+import { getUpdateRequestsByProjectId } from "@/actions/update-requests";
 import { getDocumentsByProjectId } from "@/actions/documents";
 import { getInvoicesByProjectId } from "@/actions/invoices";
 import { ProjectDocumentsSection } from "@/components/documents/project-documents-section";
@@ -11,6 +13,9 @@ import { PackageBadge } from "@/components/clients/package-badge";
 import { ProjectDeleteButton } from "@/components/projects/project-delete-button";
 import { ProjectServiceTypeBadge } from "@/components/projects/project-service-type-badge";
 import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
+import { ActivityAdminTimeline } from "@/components/client-sharing/activity-admin-timeline";
+import { ProjectClientSharingPanel } from "@/components/client-sharing/project-client-sharing-panel";
+import { ProjectUpdateRequestsSection } from "@/components/update-requests/update-request-sections";
 import { formatProjectDate } from "@/lib/projects/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -27,11 +32,13 @@ export async function generateMetadata({ params }: ProjectDetailPageProps) {
 
 export default async function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   const { id } = await params;
-  const [project, tasks, invoices, documents] = await Promise.all([
+  const [project, tasks, invoices, documents, activities, updateRequests] = await Promise.all([
     getProjectById(id),
     getTasksByProjectId(id),
     getInvoicesByProjectId(id),
     getDocumentsByProjectId(id),
+    getActivityByProjectId(id),
+    getUpdateRequestsByProjectId(id),
   ]);
 
   if (!project) {
@@ -150,6 +157,21 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
         </Card>
       ) : null}
 
+      <Card>
+        <CardHeader
+          title="Client portal sharing"
+          description="Control what this client can see in their portal"
+        />
+        <CardBody>
+          <ProjectClientSharingPanel
+            projectId={project.id}
+            clientVisible={project.clientVisible}
+            clientSummary={project.clientSummary}
+            clientStatusNote={project.clientStatusNote}
+          />
+        </CardBody>
+      </Card>
+
       <ProjectTasksSection
         projectId={project.id}
         serviceType={project.serviceType}
@@ -178,6 +200,12 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
 
       <ProjectDocumentsSection projectId={project.id} documents={documents} />
 
+      <ProjectUpdateRequestsSection
+        projectId={project.id}
+        clientId={project.clientId}
+        updateRequests={updateRequests}
+      />
+
       <Card>
         <CardHeader title="Project notes" description="Coming in a future phase." />
         <CardBody>
@@ -190,13 +218,10 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
       <Card>
         <CardHeader
           title="Activity timeline"
-          description="Coming in a future phase."
+          description="Automatic history for this project"
         />
         <CardBody>
-          <p className="text-sm text-slate-500">
-            Status changes, meetings, and deliverable updates will be logged here once
-            activity tracking is enabled.
-          </p>
+          <ActivityAdminTimeline activities={activities} />
         </CardBody>
       </Card>
     </div>

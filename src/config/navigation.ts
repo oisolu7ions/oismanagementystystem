@@ -9,6 +9,8 @@ import {
   Bell,
   Paperclip,
   Package,
+  Clock,
+  ClipboardList,
 } from "lucide-react";
 
 export type NavItem = {
@@ -70,5 +72,19 @@ export const mainNavigation: NavItem[] = [
     icon: Paperclip,
     enabled: true,
     phase: "11",
+  },
+  {
+    label: "Activity",
+    href: "/dashboard/activity",
+    icon: Clock,
+    enabled: true,
+    phase: "13",
+  },
+  {
+    label: "Update Requests",
+    href: "/dashboard/update-requests",
+    icon: ClipboardList,
+    enabled: true,
+    phase: "16",
   },
 ];

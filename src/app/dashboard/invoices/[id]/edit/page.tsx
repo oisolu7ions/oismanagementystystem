@@ -68,6 +68,8 @@ export default async function EditInvoicePage({ params }: EditInvoicePageProps) 
               notes: invoice.notes ?? undefined,
               isRecurring: invoice.isRecurring,
               recurrenceInterval: invoice.recurrenceInterval ?? undefined,
+              clientVisible: invoice.clientVisible,
+              clientNote: invoice.clientNote ?? undefined,
             }}
           />
         </CardBody>

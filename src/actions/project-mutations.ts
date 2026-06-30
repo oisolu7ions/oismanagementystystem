@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ProjectActionState } from "@/lib/projects/action-state";
+import { logActivity } from "@/lib/activity/log-activity";
+import { revalidateActivityPaths } from "@/lib/activity/revalidate";
 import { prisma } from "@/lib/prisma";
 import { projectFormSchema, projectInputToDbFields } from "@/lib/validators/project";
 
@@ -40,6 +42,9 @@ function parseProjectFormData(formData: FormData) {
     dueDate: formData.get("dueDate") ?? undefined,
     price: formData.get("price") ?? undefined,
     monthlyFee: formData.get("monthlyFee") ?? undefined,
+    clientVisible: formData.get("clientVisible") ?? undefined,
+    clientSummary: formData.get("clientSummary") ?? undefined,
+    clientStatusNote: formData.get("clientStatusNote") ?? undefined,
   });
 }
 
@@ -86,7 +91,15 @@ export async function createProjectAction(
     data: projectInputToDbFields(parsed.data),
   });
 
+  await logActivity({
+    type: "PROJECT_CREATED",
+    message: `Project created: ${project.name}.`,
+    clientId: project.clientId,
+    projectId: project.id,
+  });
+
   revalidateProjectPaths(project.id, project.clientId);
+  revalidateActivityPaths({ clientId: project.clientId, projectId: project.id });
   redirect(`/dashboard/projects/${project.id}`);
 }
 
@@ -123,7 +136,15 @@ export async function updateProjectAction(
     data: projectInputToDbFields(parsed.data),
   });
 
+  await logActivity({
+    type: "PROJECT_UPDATED",
+    message: `Project updated: ${project.name}.`,
+    clientId: project.clientId,
+    projectId: project.id,
+  });
+
   revalidateProjectPaths(id, project.clientId);
+  revalidateActivityPaths({ clientId: project.clientId, projectId: id });
   if (existing.clientId !== project.clientId) {
     revalidateProjectPaths(undefined, existing.clientId);
   }

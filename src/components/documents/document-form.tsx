@@ -10,6 +10,7 @@ import {
   isLinkOnlyDocumentType,
 } from "@/lib/documents/constants";
 import type { DocumentFormInput } from "@/lib/validators/document";
+import { DocumentClientSharingFields } from "@/components/client-sharing/client-sharing-fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -336,6 +337,8 @@ export function DocumentForm({
         defaultValue={initialValues?.notes ?? ""}
         placeholder="What this document contains, version, or access instructions..."
       />
+
+      <DocumentClientSharingFields initialValues={initialValues} />
 
       {linkOnly ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFollowUpsByLeadId } from "@/actions/follow-ups";
+import { getActivityByLeadId } from "@/actions/activity";
 import { getLeadById } from "@/actions/leads";
+import { ActivityTimeline } from "@/components/activity/activity-timeline";
 import { LeadFollowUpsSection } from "@/components/follow-ups/lead-follow-ups-section";
 import { ConvertToClient } from "@/components/leads/convert-to-client";
 import { LeadDeleteButton } from "@/components/leads/lead-delete-button";
@@ -25,9 +27,10 @@ export async function generateMetadata({ params }: LeadDetailPageProps) {
 
 export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
   const { id } = await params;
-  const [lead, followUps] = await Promise.all([
+  const [lead, followUps, activities] = await Promise.all([
     getLeadById(id),
     getFollowUpsByLeadId(id),
+    getActivityByLeadId(id),
   ]);
 
   if (!lead) {
@@ -163,13 +166,13 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
       <Card>
         <CardHeader
           title="Activity timeline"
-          description="Coming in a future phase."
+          description="Automatic history for this lead"
         />
         <CardBody>
-          <p className="text-sm text-slate-500">
-            Calls, emails, status changes, and notes will appear here once activity
-            tracking is enabled.
-          </p>
+          <ActivityTimeline
+            activities={activities}
+            emptyMessage="Activity will appear here when this lead is created, updated, or converted."
+          />
         </CardBody>
       </Card>
 

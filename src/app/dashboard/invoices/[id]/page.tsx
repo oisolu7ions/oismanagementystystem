@@ -9,6 +9,7 @@ import { InvoiceRecurrenceBadge } from "@/components/invoices/invoice-recurrence
 import { InvoiceRecurringReceiptActions } from "@/components/invoices/invoice-recurring-receipt-actions";
 import { InvoiceQuickStatusSelect } from "@/components/invoices/invoice-quick-status-select";
 import { InvoiceReceiptsSection } from "@/components/invoices/invoice-receipts-section";
+import { EntityClientVisibilityToggle } from "@/components/client-sharing/entity-client-visibility-toggle";
 import { InvoiceStatusActions } from "@/components/invoices/invoice-status-actions";
 import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
 import { getInvoiceRecurrenceLabel } from "@/lib/invoices/constants";
@@ -130,6 +131,18 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
         isRecurring={invoice.isRecurring}
         recurrenceInterval={invoice.recurrenceInterval}
       />
+
+      <Card>
+        <CardHeader title="Client portal sharing" />
+        <CardBody>
+          <EntityClientVisibilityToggle
+            entityType="invoice"
+            entityId={invoice.id}
+            clientVisible={invoice.clientVisible}
+            clientNote={invoice.clientNote}
+          />
+        </CardBody>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>

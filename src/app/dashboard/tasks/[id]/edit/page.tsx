@@ -55,6 +55,8 @@ export default async function EditTaskPage({ params }: EditTaskPageProps) {
               status: task.status,
               priority: task.priority,
               dueDate: taskDateToInputValue(task.dueDate),
+              clientVisible: task.clientVisible,
+              clientNote: task.clientNote ?? undefined,
             }}
           />
         </CardBody>

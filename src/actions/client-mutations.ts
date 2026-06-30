@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ClientActionState } from "@/lib/clients/action-state";
+import { logActivity } from "@/lib/activity/log-activity";
+import { revalidateActivityPaths } from "@/lib/activity/revalidate";
 import { prisma } from "@/lib/prisma";
 import { clientFormSchema, clientInputToDbFields } from "@/lib/validators/client";
 
@@ -73,7 +75,14 @@ export async function createClientAction(
     data: clientInputToDbFields(parsed.data),
   });
 
+  await logActivity({
+    type: "CLIENT_CREATED",
+    message: "Client profile created.",
+    clientId: client.id,
+  });
+
   revalidateClientPaths(client.id);
+  revalidateActivityPaths({ clientId: client.id });
   redirect(`/dashboard/clients/${client.id}`);
 }
 
@@ -100,12 +109,19 @@ export async function updateClientAction(
     return { fieldErrors: { packageId: packageError } };
   }
 
-  await prisma.client.update({
+  const client = await prisma.client.update({
     where: { id },
     data: clientInputToDbFields(parsed.data),
   });
 
+  await logActivity({
+    type: "CLIENT_UPDATED",
+    message: "Client profile updated.",
+    clientId: client.id,
+  });
+
   revalidateClientPaths(id);
+  revalidateActivityPaths({ clientId: id });
   redirect(`/dashboard/clients/${id}`);
 }
 

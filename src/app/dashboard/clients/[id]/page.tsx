@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getClientById } from "@/actions/clients";
+import { getActivityByClientId } from "@/actions/activity";
+import { getUpdateRequestsByClientId } from "@/actions/update-requests";
+import {
+  getClientPortalAccessSummary,
+  getClientUsersByClientId,
+} from "@/actions/client-portal-users";
 import { getDocumentsByClientId } from "@/actions/documents";
 import { getFollowUpsByClientId } from "@/actions/follow-ups";
 import { ClientDocumentsSection } from "@/components/documents/client-documents-section";
@@ -10,8 +16,11 @@ import { getProjectsByClientId } from "@/actions/projects";
 import { ClientInvoicesSection } from "@/components/invoices/client-invoices-section";
 import { ClientProjectsSection } from "@/components/projects/client-projects-section";
 import { ConvertedFromLeadBanner } from "@/components/clients/converted-from-lead-banner";
+import { ClientPortalControlsSection } from "@/components/clients/client-portal-controls-section";
+import { ClientUpdateRequestsSection } from "@/components/update-requests/update-request-sections";
 import { ClientDeleteButton } from "@/components/clients/client-delete-button";
 import { ClientStatusBadge } from "@/components/clients/client-status-badge";
+import { ActivityAdminTimeline } from "@/components/client-sharing/activity-admin-timeline";
 import { PackageBadge } from "@/components/clients/package-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -39,12 +48,17 @@ export default async function ClientDetailPage({
 }: ClientDetailPageProps) {
   const { id } = await params;
   const { convertedFromLead } = await searchParams;
-  const [client, projects, invoices, followUps, documents] = await Promise.all([
+  const [client, projects, invoices, followUps, documents, activities, portalUsers, portalAccess, updateRequests] =
+    await Promise.all([
     getClientById(id),
     getProjectsByClientId(id),
     getInvoicesByClientId(id),
     getFollowUpsByClientId(id),
     getDocumentsByClientId(id),
+    getActivityByClientId(id),
+    getClientUsersByClientId(id),
+    getClientPortalAccessSummary(id),
+    getUpdateRequestsByClientId(id),
   ]);
 
   if (!client) {
@@ -194,7 +208,23 @@ export default async function ClientDetailPage({
 
       <ClientFollowUpsSection clientId={client.id} followUps={followUps} />
 
+      <ClientUpdateRequestsSection clientId={client.id} updateRequests={updateRequests} />
+
       <ClientDocumentsSection clientId={client.id} documents={documents} />
+
+      <Card>
+        <CardHeader
+          title="Client Portal Controls"
+          description="Portal users and visibility management for this client"
+        />
+        <CardBody>
+          <ClientPortalControlsSection
+            clientId={client.id}
+            users={portalUsers}
+            hasPortalAccess={portalAccess.hasPortalAccess}
+          />
+        </CardBody>
+      </Card>
 
       <Card>
         <CardHeader title="Client notes" description="Coming in a future phase." />
@@ -209,13 +239,10 @@ export default async function ClientDetailPage({
       <Card>
         <CardHeader
           title="Activity timeline"
-          description="Coming in a future phase."
+          description="Automatic history for this client"
         />
         <CardBody>
-          <p className="text-sm text-slate-500">
-            Calls, emails, status changes, and meetings will be logged here once
-            activity tracking is enabled.
-          </p>
+          <ActivityAdminTimeline activities={activities} />
         </CardBody>
       </Card>
     </div>

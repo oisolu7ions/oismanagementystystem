@@ -7,6 +7,7 @@ import {
   taskStatusOptions,
 } from "@/lib/tasks/constants";
 import type { TaskFormInput } from "@/lib/validators/task";
+import { TaskClientSharingFields } from "@/components/client-sharing/client-sharing-fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -156,6 +157,8 @@ export function TaskForm({
         defaultValue={initialValues?.description ?? ""}
         placeholder="Steps, acceptance criteria, links, or notes..."
       />
+
+      <TaskClientSharingFields initialValues={initialValues} />
 
       {state.error && !state.fieldErrors ? (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">

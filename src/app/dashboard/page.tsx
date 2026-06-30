@@ -1,4 +1,5 @@
 import { getDashboardMetrics } from "@/actions/dashboard";
+import { getRecentActivity } from "@/actions/activity";
 import { ClientLifecycleCard } from "@/components/dashboard/client-lifecycle-card";
 import { ComingNextCard } from "@/components/dashboard/coming-next-card";
 import { DashboardStatCards } from "@/components/dashboard/dashboard-stat-cards";
@@ -6,6 +7,7 @@ import { FollowUpAlertsCard } from "@/components/dashboard/follow-up-alerts-card
 import { InvoiceSnapshotCard } from "@/components/dashboard/invoice-snapshot-card";
 import { LeadPipelineCard } from "@/components/dashboard/lead-pipeline-card";
 import { ProjectSnapshotCard } from "@/components/dashboard/project-snapshot-card";
+import { RecentActivityCard } from "@/components/dashboard/recent-activity-card";
 import { TaskAlertsCard } from "@/components/dashboard/task-alerts-card";
 
 export const metadata = {
@@ -13,7 +15,10 @@ export const metadata = {
 };
 
 export default async function DashboardPage() {
-  const metrics = await getDashboardMetrics();
+  const [metrics, recentActivity] = await Promise.all([
+    getDashboardMetrics(),
+    getRecentActivity(10),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -41,6 +46,8 @@ export default async function DashboardPage() {
         <LeadPipelineCard pipeline={metrics.leadPipeline} />
         <ClientLifecycleCard lifecycle={metrics.lifecycle} />
       </div>
+
+      <RecentActivityCard activities={recentActivity} />
 
       <ComingNextCard />
     </div>

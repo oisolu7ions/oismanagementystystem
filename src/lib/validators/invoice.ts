@@ -4,6 +4,7 @@ import {
   INVOICE_RECURRENCE_INTERVAL_VALUES,
   INVOICE_STATUS_VALUES,
 } from "@/lib/invoices/constants";
+import { invoiceSharingSchema } from "@/lib/validators/client-sharing";
 
 const optionalString = z
   .string()
@@ -23,8 +24,8 @@ const optionalUrl = z
     ]),
   );
 
-export const invoiceFormSchema = z
-  .object({
+export const invoiceFormSchema = invoiceSharingSchema
+  .extend({
     invoiceNumber: z.string().trim().min(1, "Invoice number is required"),
     clientId: z.string().trim().min(1, "Client is required"),
     projectId: z.preprocess(
@@ -85,5 +86,7 @@ export function invoiceInputToDbFields(input: InvoiceFormInput) {
       ? (input.recurrenceInterval as InvoiceRecurrenceInterval)
       : null,
     paidAt: status === "PAID" ? new Date() : null,
+    clientVisible: input.clientVisible ?? true,
+    clientNote: input.clientNote ?? null,
   };
 }

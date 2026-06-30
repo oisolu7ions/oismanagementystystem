@@ -9,6 +9,8 @@ import {
   type DocumentFileTypeValue,
 } from "@/lib/documents/constants";
 import { deleteStoredDocumentFile, saveDocumentFile } from "@/lib/documents/storage";
+import { logActivity } from "@/lib/activity/log-activity";
+import { revalidateActivityPaths } from "@/lib/activity/revalidate";
 import { prisma } from "@/lib/prisma";
 import { documentFormSchema, documentInputToDbFields } from "@/lib/validators/document";
 
@@ -61,6 +63,8 @@ function parseDocumentFormData(formData: FormData) {
     notes: formData.get("notes") ?? undefined,
     clientId: formData.get("clientId") ?? undefined,
     projectId: formData.get("projectId") ?? undefined,
+    clientVisible: formData.get("clientVisible") ?? undefined,
+    clientDescription: formData.get("clientDescription") ?? undefined,
   });
 }
 
@@ -155,7 +159,19 @@ export async function createDocumentAction(
     ),
   });
 
+  await logActivity({
+    type: "DOCUMENT_CREATED",
+    message: `Document added: ${document.name}.`,
+    clientId: document.clientId,
+    projectId: document.projectId,
+    documentLinkId: document.id,
+  });
+
   revalidateDocumentPaths(document.id, document.clientId, document.projectId);
+  revalidateActivityPaths({
+    clientId: document.clientId,
+    projectId: document.projectId,
+  });
   redirect(`/dashboard/documents/${document.id}`);
 }
 
@@ -241,7 +257,19 @@ export async function updateDocumentAction(
     await deleteStoredDocumentFile(existing.storedFileName);
   }
 
+  await logActivity({
+    type: "DOCUMENT_UPDATED",
+    message: `Document updated: ${document.name}.`,
+    clientId: document.clientId,
+    projectId: document.projectId,
+    documentLinkId: document.id,
+  });
+
   revalidateDocumentPaths(id, document.clientId, document.projectId);
+  revalidateActivityPaths({
+    clientId: document.clientId,
+    projectId: document.projectId,
+  });
   if (existing.clientId !== document.clientId) {
     revalidateDocumentPaths(undefined, existing.clientId, null);
   }

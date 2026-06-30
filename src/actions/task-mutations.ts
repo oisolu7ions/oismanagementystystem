@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { TaskStatus } from "@/generated/prisma/client";
 import type { TaskActionState } from "@/lib/tasks/action-state";
+import { logActivity } from "@/lib/activity/log-activity";
+import { revalidateActivityPaths } from "@/lib/activity/revalidate";
 import {
   checklistTitlesAlreadyPresent,
   checklistTitlesToAdd,
@@ -42,6 +44,8 @@ function parseTaskFormData(formData: FormData) {
     status: formData.get("status") ?? "TODO",
     priority: formData.get("priority") ?? "MEDIUM",
     dueDate: formData.get("dueDate") ?? undefined,
+    clientVisible: formData.get("clientVisible") ?? undefined,
+    clientNote: formData.get("clientNote") ?? undefined,
   });
 }
 
@@ -49,6 +53,13 @@ async function validateProjectExists(projectId: string): Promise<string | null> 
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) return "Selected project not found";
   return null;
+}
+
+async function getProjectContext(projectId: string) {
+  return prisma.project.findUnique({
+    where: { id: projectId },
+    select: { id: true, clientId: true },
+  });
 }
 
 export async function createTaskAction(
@@ -68,6 +79,21 @@ export async function createTaskAction(
   const task = await prisma.task.create({
     data: taskInputToDbFields(parsed.data),
   });
+
+  const project = await getProjectContext(task.projectId);
+  if (project) {
+    await logActivity({
+      type: "TASK_CREATED",
+      message: `Task created: ${task.title}.`,
+      clientId: project.clientId,
+      projectId: project.id,
+      taskId: task.id,
+    });
+    revalidateActivityPaths({
+      clientId: project.clientId,
+      projectId: project.id,
+    });
+  }
 
   revalidateTaskPaths(task.id, task.projectId);
   redirect(`/dashboard/tasks/${task.id}`);
@@ -97,6 +123,24 @@ export async function updateTaskAction(
     where: { id },
     data: taskInputToDbFields(parsed.data),
   });
+
+  const project = await getProjectContext(task.projectId);
+  if (project) {
+    const becameDone = task.status === "DONE" && existing.status !== "DONE";
+    await logActivity({
+      type: becameDone ? "TASK_COMPLETED" : "TASK_UPDATED",
+      message: becameDone
+        ? `Task completed: ${task.title}.`
+        : `Task updated: ${task.title}.`,
+      clientId: project.clientId,
+      projectId: project.id,
+      taskId: task.id,
+    });
+    revalidateActivityPaths({
+      clientId: project.clientId,
+      projectId: project.id,
+    });
+  }
 
   revalidateTaskPaths(id, task.projectId);
   if (existing.projectId !== task.projectId) {
@@ -135,6 +179,24 @@ export async function updateTaskStatusAction(
       completedAt: status === "DONE" ? new Date() : null,
     },
   });
+
+  const project = await getProjectContext(task.projectId);
+  if (project) {
+    await logActivity({
+      type: status === "DONE" ? "TASK_COMPLETED" : "TASK_UPDATED",
+      message:
+        status === "DONE"
+          ? `Task completed: ${task.title}.`
+          : `Task updated: ${task.title}.`,
+      clientId: project.clientId,
+      projectId: project.id,
+      taskId: task.id,
+    });
+    revalidateActivityPaths({
+      clientId: project.clientId,
+      projectId: project.id,
+    });
+  }
 
   revalidateTaskPaths(taskId, task.projectId);
   return { success: true };

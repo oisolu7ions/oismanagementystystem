@@ -7,6 +7,7 @@ import {
   serviceTypeOptions,
 } from "@/lib/projects/constants";
 import type { ProjectFormInput } from "@/lib/validators/project";
+import { ProjectClientSharingFields } from "@/components/client-sharing/client-sharing-fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -219,6 +220,8 @@ export function ProjectForm({
         defaultValue={initialValues?.description ?? ""}
         placeholder="Scope, deliverables, milestones, and client expectations..."
       />
+
+      <ProjectClientSharingFields initialValues={initialValues} />
 
       {state.error && !state.fieldErrors ? (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">

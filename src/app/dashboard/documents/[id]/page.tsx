@@ -5,6 +5,7 @@ import { DocumentDeleteButton } from "@/components/documents/document-delete-but
 import { DocumentFileTypeBadge } from "@/components/documents/document-file-type-badge";
 import { DocumentAttachmentButton } from "@/components/documents/document-attachment-button";
 import { formatFileSize } from "@/lib/documents/constants";
+import { EntityClientVisibilityToggle } from "@/components/client-sharing/entity-client-visibility-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
@@ -161,6 +162,19 @@ export default async function DocumentDetailPage({ params }: DocumentDetailPageP
           </CardBody>
         </Card>
       ) : null}
+
+      <Card>
+        <CardHeader title="Client portal sharing" />
+        <CardBody>
+          <EntityClientVisibilityToggle
+            entityType="document"
+            entityId={document.id}
+            clientVisible={document.clientVisible}
+            clientNote={document.clientDescription}
+            noteLabel="Client Description"
+          />
+        </CardBody>
+      </Card>
 
       <Card>
         <CardHeader title="Record" />

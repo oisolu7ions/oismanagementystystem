@@ -81,7 +81,7 @@ export function Sidebar() {
 
         <div className="border-t border-slate-100 px-5 py-4">
           <p className="text-xs text-slate-400">OIS Technology</p>
-          <p className="text-xs text-slate-500">Phase 12 — Dashboard</p>
+          <p className="text-xs text-slate-500">Phase 16 — Client Update Requests</p>
         </div>
       </aside>
     </>

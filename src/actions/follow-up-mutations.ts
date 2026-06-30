@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { FollowUpStatus } from "@/generated/prisma/client";
 import type { FollowUpActionState } from "@/lib/follow-ups/action-state";
+import { getFollowUpReasonLabel } from "@/lib/follow-ups/constants";
+import { logActivity } from "@/lib/activity/log-activity";
+import { revalidateActivityPaths } from "@/lib/activity/revalidate";
 import { prisma } from "@/lib/prisma";
 import { followUpFormSchema, followUpInputToDbFields } from "@/lib/validators/follow-up";
 
@@ -83,7 +86,19 @@ export async function createFollowUpAction(
     data: followUpInputToDbFields(parsed.data),
   });
 
+  await logActivity({
+    type: "FOLLOW_UP_CREATED",
+    message: `Follow-up created: ${getFollowUpReasonLabel(followUp.reason)}.`,
+    leadId: followUp.leadId,
+    clientId: followUp.clientId,
+    followUpId: followUp.id,
+  });
+
   revalidateFollowUpPaths(followUp.id, followUp.leadId, followUp.clientId);
+  revalidateActivityPaths({
+    leadId: followUp.leadId,
+    clientId: followUp.clientId,
+  });
   redirect(`/dashboard/follow-ups/${followUp.id}`);
 }
 
@@ -127,7 +142,24 @@ export async function updateFollowUpAction(
     },
   });
 
+  const completedNow =
+    followUp.status === "COMPLETED" && existing.status !== "COMPLETED";
+
+  await logActivity({
+    type: completedNow ? "FOLLOW_UP_COMPLETED" : "FOLLOW_UP_UPDATED",
+    message: completedNow
+      ? `Follow-up completed: ${getFollowUpReasonLabel(followUp.reason)}.`
+      : `Follow-up updated: ${getFollowUpReasonLabel(followUp.reason)}.`,
+    leadId: followUp.leadId,
+    clientId: followUp.clientId,
+    followUpId: followUp.id,
+  });
+
   revalidateFollowUpPaths(id, followUp.leadId, followUp.clientId);
+  revalidateActivityPaths({
+    leadId: followUp.leadId,
+    clientId: followUp.clientId,
+  });
   if (existing.leadId !== followUp.leadId) {
     revalidateFollowUpPaths(undefined, existing.leadId, null);
   }
@@ -168,6 +200,21 @@ export async function updateFollowUpStatusAction(
     },
   });
 
+  await logActivity({
+    type: status === "COMPLETED" ? "FOLLOW_UP_COMPLETED" : "FOLLOW_UP_UPDATED",
+    message:
+      status === "COMPLETED"
+        ? `Follow-up completed: ${getFollowUpReasonLabel(followUp.reason)}.`
+        : `Follow-up updated: ${getFollowUpReasonLabel(followUp.reason)}.`,
+    leadId: followUp.leadId,
+    clientId: followUp.clientId,
+    followUpId: followUp.id,
+  });
+
   revalidateFollowUpPaths(followUpId, followUp.leadId, followUp.clientId);
+  revalidateActivityPaths({
+    leadId: followUp.leadId,
+    clientId: followUp.clientId,
+  });
   return { success: true };
 }

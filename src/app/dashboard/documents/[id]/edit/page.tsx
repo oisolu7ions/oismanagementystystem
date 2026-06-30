@@ -69,6 +69,8 @@ export default async function EditDocumentPage({ params }: EditDocumentPageProps
               notes: document.notes ?? undefined,
               clientId,
               projectId: document.projectId ?? undefined,
+              clientVisible: document.clientVisible,
+              clientDescription: document.clientDescription ?? undefined,
             }}
           />
         </CardBody>

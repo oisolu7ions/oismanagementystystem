@@ -4,6 +4,7 @@ import {
   TASK_PRIORITY_VALUES,
   TASK_STATUS_VALUES,
 } from "@/lib/tasks/constants";
+import { taskSharingSchema } from "@/lib/validators/client-sharing";
 
 const optionalString = z
   .string()
@@ -11,7 +12,7 @@ const optionalString = z
   .optional()
   .transform((value) => (value === "" ? undefined : value));
 
-export const taskFormSchema = z.object({
+export const taskFormSchema = taskSharingSchema.extend({
   title: z.string().trim().min(1, "Title is required"),
   projectId: z.string().trim().min(1, "Project is required"),
   description: optionalString,
@@ -40,5 +41,7 @@ export function taskInputToDbFields(input: TaskFormInput) {
     priority: input.priority as TaskPriority,
     dueDate,
     completedAt: status === "DONE" ? new Date() : null,
+    clientVisible: input.clientVisible ?? false,
+    clientNote: input.clientNote ?? null,
   };
 }

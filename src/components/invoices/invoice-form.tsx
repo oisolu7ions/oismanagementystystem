@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import type { InvoiceActionState } from "@/lib/invoices/action-state";
 import { invoiceRecurrenceOptions, invoiceStatusOptions } from "@/lib/invoices/constants";
 import type { InvoiceFormInput } from "@/lib/validators/invoice";
+import { InvoiceClientSharingFields } from "@/components/client-sharing/client-sharing-fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -289,6 +290,8 @@ export function InvoiceForm({
         defaultValue={initialValues?.notes ?? ""}
         placeholder="Payment instructions, line items, or internal billing notes..."
       />
+
+      <InvoiceClientSharingFields initialValues={initialValues} />
 
       <p className="text-xs text-slate-500">
         OIS Command Center does not process payments. Use payment links for manual

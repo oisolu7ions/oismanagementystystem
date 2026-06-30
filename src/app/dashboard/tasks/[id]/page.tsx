@@ -6,6 +6,7 @@ import { TaskDueDate } from "@/components/tasks/task-due-date";
 import { TaskPriorityBadge } from "@/components/tasks/task-priority-badge";
 import { TaskQuickStatusSelect } from "@/components/tasks/task-quick-status-select";
 import { TaskStatusBadge } from "@/components/tasks/task-status-badge";
+import { EntityClientVisibilityToggle } from "@/components/client-sharing/entity-client-visibility-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
@@ -147,6 +148,18 @@ export default async function TaskDetailPage({ params }: TaskDetailPageProps) {
           </CardBody>
         </Card>
       ) : null}
+
+      <Card>
+        <CardHeader title="Client portal sharing" />
+        <CardBody>
+          <EntityClientVisibilityToggle
+            entityType="task"
+            entityId={task.id}
+            clientVisible={task.clientVisible}
+            clientNote={task.clientNote}
+          />
+        </CardBody>
+      </Card>
 
       <Card>
         <CardHeader title="Record" />

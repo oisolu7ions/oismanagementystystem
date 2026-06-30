@@ -10,6 +10,8 @@ import {
   type Prisma,
 } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { formatLeadName, logActivity } from "@/lib/activity/log-activity";
+import { revalidateActivityPaths } from "@/lib/activity/revalidate";
 import { leadFormSchema, leadInputToDbFields } from "@/lib/validators/lead";
 
 export type LeadActionState = {
@@ -148,11 +150,32 @@ export async function convertLeadToClientAction(
         },
       });
 
+      await logActivity(
+        {
+          type: "LEAD_CONVERTED",
+          message: "Lead converted to client.",
+          leadId,
+          clientId: created.id,
+        },
+        tx,
+      );
+
+      await logActivity(
+        {
+          type: "CLIENT_CREATED",
+          message: "Client profile created.",
+          leadId,
+          clientId: created.id,
+        },
+        tx,
+      );
+
       return created;
     });
 
     revalidateLeadPaths(leadId);
     revalidateClientPaths(client.id);
+    revalidateActivityPaths({ leadId, clientId: client.id });
 
     return { success: true, clientId: client.id };
   } catch {
@@ -175,7 +198,14 @@ export async function createLeadAction(
     data: leadInputToDbFields(parsed.data),
   });
 
+  await logActivity({
+    type: "LEAD_CREATED",
+    message: `Lead created for ${formatLeadName(lead.name, lead.businessName)}.`,
+    leadId: lead.id,
+  });
+
   revalidateLeadPaths(lead.id);
+  revalidateActivityPaths({ leadId: lead.id });
   redirect(`/dashboard/leads/${lead.id}`);
 }
 
@@ -189,12 +219,20 @@ export async function updateLeadAction(
     return formatZodErrors(parsed.error.issues);
   }
 
-  await prisma.lead.update({
+  const lead = await prisma.lead.update({
     where: { id },
     data: leadInputToDbFields(parsed.data),
   });
 
+  await logActivity({
+    type: "LEAD_UPDATED",
+    message: `Lead updated for ${formatLeadName(lead.name, lead.businessName)}.`,
+    leadId: lead.id,
+    clientId: lead.clientId,
+  });
+
   revalidateLeadPaths(id);
+  revalidateActivityPaths({ leadId: id, clientId: lead.clientId });
   redirect(`/dashboard/leads/${id}`);
 }
 

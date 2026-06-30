@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import type { InvoiceStatus } from "@/generated/prisma/client";
 import type { InvoiceActionState } from "@/lib/invoices/action-state";
 import { getNextInvoiceNumberFromExisting } from "@/lib/invoices/invoice-number";
+import { logActivity } from "@/lib/activity/log-activity";
+import { revalidateActivityPaths } from "@/lib/activity/revalidate";
 import { maybeGenerateReceiptOnPayment } from "@/lib/receipts/create-receipt";
 import { deleteStoredReceiptFile } from "@/lib/receipts/storage";
 import { prisma } from "@/lib/prisma";
@@ -53,6 +55,8 @@ function parseInvoiceFormData(formData: FormData) {
     isRecurring: formData.get("isRecurring") ?? undefined,
     recurrenceInterval: formData.get("recurrenceInterval") ?? undefined,
     autoGenerateNumber: formData.get("autoGenerateNumber") ?? undefined,
+    clientVisible: formData.get("clientVisible") ?? undefined,
+    clientNote: formData.get("clientNote") ?? undefined,
   });
 }
 
@@ -109,6 +113,61 @@ async function resolveInvoiceNumber(
   return { invoiceNumber: resolved };
 }
 
+async function logInvoiceActivity(
+  invoice: {
+    id: string;
+    invoiceNumber: string;
+    clientId: string;
+    projectId: string | null;
+  },
+  type: "INVOICE_CREATED" | "INVOICE_UPDATED" | "INVOICE_SENT" | "INVOICE_PAID",
+) {
+  const messages = {
+    INVOICE_CREATED: `Invoice ${invoice.invoiceNumber} created.`,
+    INVOICE_UPDATED: `Invoice ${invoice.invoiceNumber} updated.`,
+    INVOICE_SENT: `Invoice ${invoice.invoiceNumber} marked as sent.`,
+    INVOICE_PAID: `Invoice ${invoice.invoiceNumber} marked as paid.`,
+  };
+
+  await logActivity({
+    type,
+    message: messages[type],
+    clientId: invoice.clientId,
+    projectId: invoice.projectId,
+    invoiceId: invoice.id,
+  });
+
+  revalidateActivityPaths({
+    clientId: invoice.clientId,
+    projectId: invoice.projectId,
+  });
+}
+
+async function logInvoiceStatusChange(
+  invoice: {
+    id: string;
+    invoiceNumber: string;
+    clientId: string;
+    projectId: string | null;
+  },
+  previousStatus: InvoiceStatus,
+  nextStatus: InvoiceStatus,
+) {
+  if (previousStatus === nextStatus) return;
+
+  if (nextStatus === "SENT") {
+    await logInvoiceActivity(invoice, "INVOICE_SENT");
+    return;
+  }
+
+  if (nextStatus === "PAID") {
+    await logInvoiceActivity(invoice, "INVOICE_PAID");
+    return;
+  }
+
+  await logInvoiceActivity(invoice, "INVOICE_UPDATED");
+}
+
 export async function createInvoiceAction(
   _prevState: InvoiceActionState,
   formData: FormData,
@@ -153,6 +212,13 @@ export async function createInvoiceAction(
       invoice.status,
       invoice.paidAt,
     );
+  }
+
+  await logInvoiceActivity(invoice, "INVOICE_CREATED");
+  if (invoice.status === "SENT") {
+    await logInvoiceActivity(invoice, "INVOICE_SENT");
+  } else if (invoice.status === "PAID") {
+    await logInvoiceActivity(invoice, "INVOICE_PAID");
   }
 
   revalidateInvoicePaths(invoice.id, invoice.clientId, invoice.projectId);
@@ -221,6 +287,11 @@ export async function updateInvoiceAction(
     invoice.paidAt,
   );
 
+  await logInvoiceStatusChange(invoice, existing.status, invoice.status);
+  if (existing.status === invoice.status) {
+    await logInvoiceActivity(invoice, "INVOICE_UPDATED");
+  }
+
   revalidateInvoicePaths(id, invoice.clientId, invoice.projectId);
   if (existing.clientId !== invoice.clientId) {
     revalidateInvoicePaths(undefined, existing.clientId, existing.projectId);
@@ -279,6 +350,8 @@ export async function updateInvoiceStatusAction(
     paidAt,
   );
 
+  await logInvoiceStatusChange(invoice, invoice.status, status);
+
   revalidateInvoicePaths(invoiceId, invoice.clientId, invoice.projectId);
   return { success: true };
 }
@@ -299,6 +372,8 @@ export async function forceMarkInvoiceOverdueAction(
     where: { id: invoiceId },
     data: { status: "OVERDUE" },
   });
+
+  await logInvoiceActivity(invoice, "INVOICE_UPDATED");
 
   revalidateInvoicePaths(invoiceId, invoice.clientId, invoice.projectId);
   return { success: true };

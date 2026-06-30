@@ -68,6 +68,9 @@ export default async function EditProjectPage({ params }: EditProjectPageProps) 
               dueDate: projectDateToInputValue(project.dueDate),
               price: project.price ?? undefined,
               monthlyFee: project.monthlyFee ?? undefined,
+              clientVisible: project.clientVisible,
+              clientSummary: project.clientSummary ?? undefined,
+              clientStatusNote: project.clientStatusNote ?? undefined,
             }}
           />
         </CardBody>

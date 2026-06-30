@@ -5,6 +5,7 @@ import {
   DOCUMENT_SOURCE_TYPE_VALUES,
   isLinkOnlyDocumentType,
 } from "@/lib/documents/constants";
+import { documentSharingSchema } from "@/lib/validators/client-sharing";
 
 const optionalString = z
   .string()
@@ -23,8 +24,8 @@ const documentUrl = z
       .pipe(z.url("Enter a valid document URL (include https://)")),
   );
 
-export const documentFormSchema = z
-  .object({
+export const documentFormSchema = documentSharingSchema
+  .extend({
     name: z.string().trim().min(1, "Document name is required"),
     fileType: z.enum(DOCUMENT_FILE_TYPE_VALUES, { message: "File type is required" }),
     sourceType: z.enum(DOCUMENT_SOURCE_TYPE_VALUES, { message: "Source type is required" }),
@@ -95,6 +96,8 @@ export function documentInputToDbFields(
       notes: input.notes ?? null,
       clientId: input.clientId ?? null,
       projectId: input.projectId ?? null,
+      clientVisible: input.clientVisible ?? false,
+      clientDescription: input.clientDescription ?? null,
     };
   }
 
@@ -110,5 +113,7 @@ export function documentInputToDbFields(
     notes: input.notes ?? null,
     clientId: input.clientId ?? null,
     projectId: input.projectId ?? null,
+    clientVisible: input.clientVisible ?? false,
+    clientDescription: input.clientDescription ?? null,
   };
 }
