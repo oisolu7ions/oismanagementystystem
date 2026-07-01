@@ -20,8 +20,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "OIS Command Center",
-    template: "%s | OIS Command Center",
+    default: "OIS Management Center",
+    template: "%s | OIS Management Center",
   },
   description:
     "Internal CRM and project management dashboard for OIS Technology.",
@@ -42,7 +42,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-slate-50 text-slate-900">{children}</body>
+      <body className="min-h-full text-slate-900">{children}</body>
     </html>
   );
 }

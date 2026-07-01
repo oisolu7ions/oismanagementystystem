@@ -343,7 +343,7 @@ export function DocumentForm({
       {linkOnly ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
           For Access Credentials, link to a secure password manager or vault record. Never
-          store passwords in OIS Command Center.
+          store passwords in OIS Management Center.
         </p>
       ) : null}
 

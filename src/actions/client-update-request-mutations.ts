@@ -10,6 +10,7 @@ import {
 } from "@/lib/client-portal/update-request-queries";
 import { clientVisibleProjectWhere } from "@/lib/client-portal/visibility";
 import { prisma } from "@/lib/prisma";
+import { getPortalDefaultSettings } from "@/lib/settings";
 import type { UpdateRequestActionState } from "@/lib/update-requests/action-state";
 import {
   CLIENT_CANCELLABLE_UPDATE_REQUEST_STATUSES,
@@ -133,6 +134,11 @@ export async function createClientUpdateRequestAction(
 ): Promise<UpdateRequestActionState> {
   const session = await getClientSession();
   if (!session) return { error: "Unauthorized" };
+
+  const portalDefaults = await getPortalDefaultSettings();
+  if (!portalDefaults.defaultUpdateRequestsEnabled) {
+    return { error: "New update requests are not currently available." };
+  }
 
   const parsed = updateRequestClientFormSchema.safeParse({
     title: formData.get("title"),

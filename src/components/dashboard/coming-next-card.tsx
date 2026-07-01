@@ -119,7 +119,7 @@ const modules: ModuleItem[] = [
   },
   {
     title: "AI Assistant",
-    description: "Context-aware help across Command Center.",
+    description: "Context-aware help across Management Center.",
     icon: Sparkles,
     badge: "future",
   },

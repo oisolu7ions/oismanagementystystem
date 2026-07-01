@@ -11,10 +11,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
-          <AppBrand linked={false} showTagline={false} className="justify-center" />
-          <p className="mt-3 text-sm text-slate-500">
-            Sign in to manage leads, clients, and projects.
-          </p>
+          <AppBrand linked={false} showTagline={false} size="large" showLogo={false} className="justify-center" />
         </div>
 
         <Card>

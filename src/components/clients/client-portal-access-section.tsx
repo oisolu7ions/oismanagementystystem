@@ -4,15 +4,35 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useTransition } from "react";
 import {
   createClientUserAction,
+  resendClientUserVerificationAction,
   setClientUserActiveAction,
   type ClientUserActionState,
 } from "@/actions/client-portal-users";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import type { ClientUser } from "@/generated/prisma/client";
+
+type PortalUser = {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+  emailVerifiedAt: Date | null;
+  lastLoginAt: Date | null;
+  createdAt: Date;
+  securityEvents?: Array<{
+    id: string;
+    type: string;
+    message: string;
+    createdAt: Date;
+  }>;
+};
 
 const initialState: ClientUserActionState = {};
+
+function formatDate(value: Date | null | undefined): string {
+  return value ? value.toLocaleString() : "Never";
+}
 
 function CreateClientUserForm({ clientId }: { clientId: string }) {
   const router = useRouter();
@@ -62,6 +82,9 @@ function CreateClientUserForm({ clientId }: { clientId: string }) {
       {state.fieldErrors?.password ? (
         <p className="text-xs text-red-600">{state.fieldErrors.password}</p>
       ) : null}
+      {state.message ? (
+        <p className="text-sm text-emerald-700">{state.message}</p>
+      ) : null}
       {state.error ? (
         <p className="text-sm text-red-600">{state.error}</p>
       ) : null}
@@ -72,7 +95,7 @@ function CreateClientUserForm({ clientId }: { clientId: string }) {
   );
 }
 
-function ClientUserRow({ user }: { user: ClientUser }) {
+function ClientUserRow({ user }: { user: PortalUser }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -87,31 +110,78 @@ function ClientUserRow({ user }: { user: ClientUser }) {
     });
   }
 
+  function resendVerification() {
+    startTransition(async () => {
+      const result = await resendClientUserVerificationAction(user.id);
+      if (result.error) {
+        alert(result.error);
+        return;
+      }
+      if (result.message) alert(result.message);
+      router.refresh();
+    });
+  }
+
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="font-medium text-slate-900">{user.name}</p>
-          <Badge variant={user.isActive ? "success" : "muted"}>
-            {user.isActive ? "Active" : "Inactive"}
-          </Badge>
+    <div className="space-y-3 rounded-lg border border-slate-200 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-medium text-slate-900">{user.name}</p>
+            <Badge variant={user.isActive ? "success" : "muted"}>
+              {user.isActive ? "Active" : "Inactive"}
+            </Badge>
+            <Badge variant={user.emailVerifiedAt ? "success" : "warning"}>
+              {user.emailVerifiedAt ? "Email verified" : "Email unverified"}
+            </Badge>
+          </div>
+          <p className="mt-1 text-sm text-slate-600">{user.email}</p>
+          <div className="mt-2 grid gap-1 text-xs text-slate-500 sm:grid-cols-2">
+            <p>Created {formatDate(user.createdAt)}</p>
+            <p>Last login {formatDate(user.lastLoginAt)}</p>
+            <p>Verified {formatDate(user.emailVerifiedAt)}</p>
+          </div>
         </div>
-        <p className="mt-1 text-sm text-slate-600">{user.email}</p>
-        <p className="mt-1 text-xs text-slate-500">
-          {user.lastLoginAt
-            ? `Last login ${user.lastLoginAt.toLocaleString()}`
-            : "Never signed in"}
-        </p>
+        <div className="flex flex-wrap gap-2">
+          {!user.emailVerifiedAt ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={pending}
+              onClick={resendVerification}
+            >
+              Resend verification
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            size="sm"
+            variant={user.isActive ? "secondary" : "primary"}
+            disabled={pending}
+            onClick={toggleActive}
+          >
+            {user.isActive ? "Deactivate access" : "Reactivate access"}
+          </Button>
+        </div>
       </div>
-      <Button
-        type="button"
-        size="sm"
-        variant={user.isActive ? "secondary" : "primary"}
-        disabled={pending}
-        onClick={toggleActive}
-      >
-        {user.isActive ? "Deactivate access" : "Reactivate access"}
-      </Button>
+
+      {user.securityEvents && user.securityEvents.length > 0 ? (
+        <div className="rounded-lg bg-slate-50 px-3 py-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+            Recent security events
+          </p>
+          <ul className="mt-2 space-y-1 text-xs text-slate-500">
+            {user.securityEvents.map((event) => (
+              <li key={event.id}>
+                <span className="font-medium text-slate-600">{event.type}</span>
+                {" — "}
+                {event.message} ({formatDate(event.createdAt)})
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -122,7 +192,7 @@ export function ClientPortalAccessSection({
   hasPortalAccess,
 }: {
   clientId: string;
-  users: ClientUser[];
+  users: PortalUser[];
   hasPortalAccess: boolean;
 }) {
   return (

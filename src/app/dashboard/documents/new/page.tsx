@@ -7,6 +7,7 @@ import {
 } from "@/actions/documents";
 import { DocumentForm } from "@/components/documents/document-form";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { getPortalDefaultSettings } from "@/lib/settings";
 
 type NewDocumentPageProps = {
   searchParams: Promise<{ clientId?: string; projectId?: string }>;
@@ -22,9 +23,10 @@ export default async function NewDocumentPage({ searchParams }: NewDocumentPageP
   const project = projectId ? await getProjectForDocumentPrefill(projectId) : null;
   const resolvedClientId = clientId ?? project?.clientId;
 
-  const [clients, projects] = await Promise.all([
+  const [clients, projects, portalDefaults] = await Promise.all([
     getClientsForDocumentForm(),
     getProjectsForDocumentForm(resolvedClientId),
+    getPortalDefaultSettings(),
   ]);
 
   const backHref = projectId
@@ -72,6 +74,7 @@ export default async function NewDocumentPage({ searchParams }: NewDocumentPageP
               clientId: resolvedClientId ?? undefined,
               projectId: projectId ?? undefined,
               fileType: "OTHER",
+              clientVisible: portalDefaults.defaultDocumentVisible,
             }}
             lockClientId={Boolean(resolvedClientId && !projectId)}
             lockProjectId={Boolean(projectId)}

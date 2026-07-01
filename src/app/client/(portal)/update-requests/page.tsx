@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { ResponsiveTable } from "@/components/ui/responsive-table";
 import { Plus } from "lucide-react";
+import { getPortalDefaultSettings } from "@/lib/settings";
 
 export const metadata = {
   title: "Update Requests",
@@ -17,7 +18,10 @@ export const metadata = {
 
 export default async function ClientUpdateRequestsPage() {
   const session = await requireClientPortalSession();
-  const updateRequests = await getClientPortalUpdateRequests(session.clientId);
+  const [updateRequests, portalDefaults] = await Promise.all([
+    getClientPortalUpdateRequests(session.clientId),
+    getPortalDefaultSettings(),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -28,12 +32,14 @@ export default async function ClientUpdateRequestsPage() {
             Request changes to your website, portal, dashboard, or managed systems.
           </p>
         </div>
-        <Link href="/client/update-requests/new">
-          <Button>
-            <Plus className="h-4 w-4" />
-            New request
-          </Button>
-        </Link>
+        {portalDefaults.defaultUpdateRequestsEnabled ? (
+          <Link href="/client/update-requests/new">
+            <Button>
+              <Plus className="h-4 w-4" />
+              New request
+            </Button>
+          </Link>
+        ) : null}
       </div>
 
       <Card>
@@ -48,9 +54,11 @@ export default async function ClientUpdateRequestsPage() {
               <p className="mt-1 text-sm text-slate-500">
                 Submit a request when you need content, design, or system changes.
               </p>
-              <Link href="/client/update-requests/new" className="mt-4 inline-block">
-                <Button size="sm">Submit request</Button>
-              </Link>
+              {portalDefaults.defaultUpdateRequestsEnabled ? (
+                <Link href="/client/update-requests/new" className="mt-4 inline-block">
+                  <Button size="sm">Submit request</Button>
+                </Link>
+              ) : null}
             </div>
           ) : (
             <ResponsiveTable>

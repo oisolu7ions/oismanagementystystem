@@ -27,7 +27,7 @@ export function RecentActivityCard({
       <CardBody>
         <ActivityTimeline
           activities={activities}
-          emptyMessage="Activity will appear here as your team works in Command Center."
+          emptyMessage="Activity will appear here as your team works in Management Center."
         />
       </CardBody>
     </Card>

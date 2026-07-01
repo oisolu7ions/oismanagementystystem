@@ -1,6 +1,6 @@
-# OIS Command Center — Production Setup
+# OIS Management Center — Production Setup
 
-This guide explains how to deploy and run **OIS Command Center** in production.
+This guide explains how to deploy and run **OIS Management Center** in production.
 
 For local development, see [README.md](./README.md).
 
@@ -234,7 +234,7 @@ Create `/etc/systemd/system/ois-command-center.service`:
 
 ```ini
 [Unit]
-Description=OIS Command Center
+Description=OIS Management Center
 After=network.target
 
 [Service]

@@ -29,7 +29,7 @@ export default async function ActivityPage() {
         <CardBody>
           <ActivityTimeline
             activities={activities}
-            emptyMessage="No activity recorded yet. Actions across Command Center will appear here automatically."
+            emptyMessage="No activity recorded yet. Actions across Management Center will appear here automatically."
           />
         </CardBody>
       </Card>

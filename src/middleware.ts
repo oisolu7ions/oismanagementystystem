@@ -23,6 +23,8 @@ async function isAdminAuthenticated(request: NextRequest): Promise<boolean> {
   }
 }
 
+const clientAuthPublicPaths = new Set<string>(["/client/login", "/client/verify-email", "/client/enter-code", "/client/forgot-password", "/client/login/code", "/client/resend-verification", "/client/session-expired"]);
+
 async function isClientAuthenticated(request: NextRequest): Promise<boolean> {
   const token = request.cookies.get(CLIENT_SESSION_COOKIE)?.value;
   const secret = getSecretKey();
@@ -70,6 +72,10 @@ export async function middleware(request: NextRequest) {
       if (clientAuthed) {
         return NextResponse.redirect(new URL("/client/dashboard", request.url));
       }
+      return NextResponse.next();
+    }
+
+    if (clientAuthPublicPaths.has(pathname)) {
       return NextResponse.next();
     }
 

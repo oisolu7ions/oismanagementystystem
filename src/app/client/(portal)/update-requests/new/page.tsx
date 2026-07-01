@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClientUpdateRequestAction } from "@/actions/client-update-request-mutations";
 import { getClientPortalProjectsForUpdateRequest } from "@/lib/client-portal/update-request-queries";
 import { requireClientPortalSession } from "@/lib/client-portal/require-session";
+import { getPortalDefaultSettings } from "@/lib/settings";
 import { ClientUpdateRequestForm } from "@/components/update-requests/client-update-request-form";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
@@ -11,7 +12,10 @@ export const metadata = {
 
 export default async function ClientNewUpdateRequestPage() {
   const session = await requireClientPortalSession();
-  const projects = await getClientPortalProjectsForUpdateRequest(session.clientId);
+  const [projects, portalDefaults] = await Promise.all([
+    getClientPortalProjectsForUpdateRequest(session.clientId),
+    getPortalDefaultSettings(),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -33,11 +37,17 @@ export default async function ClientNewUpdateRequestPage() {
       <Card>
         <CardHeader title="Request details" />
         <CardBody>
-          <ClientUpdateRequestForm
-            mode="create"
-            action={createClientUpdateRequestAction}
-            projects={projects}
-          />
+          {portalDefaults.defaultUpdateRequestsEnabled ? (
+            <ClientUpdateRequestForm
+              mode="create"
+              action={createClientUpdateRequestAction}
+              projects={projects}
+            />
+          ) : (
+            <p className="text-sm text-slate-500">
+              New update requests are not currently available for this portal.
+            </p>
+          )}
         </CardBody>
       </Card>
     </div>

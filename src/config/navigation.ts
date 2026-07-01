@@ -11,6 +11,7 @@ import {
   Package,
   Clock,
   ClipboardList,
+  Settings,
 } from "lucide-react";
 
 export type NavItem = {
@@ -86,5 +87,12 @@ export const mainNavigation: NavItem[] = [
     icon: ClipboardList,
     enabled: true,
     phase: "16",
+  },
+  {
+    label: "Settings",
+    href: "/dashboard/settings",
+    icon: Settings,
+    enabled: true,
+    phase: "17B",
   },
 ];

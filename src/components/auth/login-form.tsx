@@ -17,7 +17,6 @@ export function LoginForm() {
         name="email"
         type="email"
         autoComplete="email"
-        placeholder="admin@ois.tech"
         required
       />
       <Input
@@ -25,7 +24,6 @@ export function LoginForm() {
         name="password"
         type="password"
         autoComplete="current-password"
-        placeholder="••••••••"
         required
       />
 

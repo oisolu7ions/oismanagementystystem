@@ -1,27 +1,28 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ClientBrand } from "@/components/client-portal/client-brand";
 import { ClientPortalHeader } from "@/components/client-portal/client-portal-header";
 import { ClientPortalNav } from "@/components/client-portal/client-portal-nav";
+import { LegalSupportFooter, type LegalSupportFooterLink } from "@/components/legal-support/legal-support-footer";
 import type { ClientSessionPayload } from "@/types/client-session";
 
 export function ClientPortalShell({
   session,
   children,
+  footerLinks,
+  showFooter = true,
 }: {
   session: ClientSessionPayload;
   children: ReactNode;
+  footerLinks?: LegalSupportFooterLink[];
+  showFooter?: boolean;
 }) {
   const [navOpen, setNavOpen] = useState(false);
 
-  useEffect(() => {
-    setNavOpen(false);
-  }, [session.clientUserId]);
-
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen">
       <button
         type="button"
         aria-label="Close navigation menu"
@@ -49,6 +50,12 @@ export function ClientPortalShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <ClientPortalHeader session={session} onMenuClick={() => setNavOpen(true)} />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        {showFooter ? (
+          <LegalSupportFooter
+            className="border-t border-slate-200 bg-white/80 px-4 py-4 sm:px-6"
+            links={footerLinks}
+          />
+        ) : null}
       </div>
     </div>
   );

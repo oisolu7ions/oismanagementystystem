@@ -26,7 +26,7 @@ export function ClientLifecycleCard({
     <Card>
       <CardHeader
         title="Client lifecycle"
-        description="Real counts across your OIS Command Center data."
+        description="Real counts across your OIS Management Center data."
       />
       <CardBody>
         <ol className="space-y-3">

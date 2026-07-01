@@ -6,6 +6,7 @@ import {
 } from "@/actions/projects";
 import { ProjectForm } from "@/components/projects/project-form";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { getPortalDefaultSettings } from "@/lib/settings";
 
 type NewProjectPageProps = {
   searchParams: Promise<{ clientId?: string }>;
@@ -17,9 +18,10 @@ export const metadata = {
 
 export default async function NewProjectPage({ searchParams }: NewProjectPageProps) {
   const { clientId } = await searchParams;
-  const [clients, packages] = await Promise.all([
+  const [clients, packages, portalDefaults] = await Promise.all([
     getClientsForProjectForm(),
     getPackagesForProjectForm(),
+    getPortalDefaultSettings(),
   ]);
 
   const backHref = clientId ? `/dashboard/clients/${clientId}` : "/dashboard/projects";
@@ -53,6 +55,7 @@ export default async function NewProjectPage({ searchParams }: NewProjectPagePro
               clientId: clientId ?? undefined,
               status: "NOT_STARTED",
               serviceType: "WEBSITE_BUILD",
+              clientVisible: portalDefaults.defaultProjectVisible,
             }}
             lockClientId={Boolean(clientId)}
           />

@@ -7,6 +7,7 @@ import {
 } from "@/actions/invoices";
 import { InvoiceForm } from "@/components/invoices/invoice-form";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { getPortalDefaultSettings } from "@/lib/settings";
 
 type NewInvoicePageProps = {
   searchParams: Promise<{ clientId?: string; projectId?: string }>;
@@ -18,10 +19,11 @@ export const metadata = {
 
 export default async function NewInvoicePage({ searchParams }: NewInvoicePageProps) {
   const { clientId, projectId } = await searchParams;
-  const [clients, projects, suggestedInvoiceNumber] = await Promise.all([
+  const [clients, projects, suggestedInvoiceNumber, portalDefaults] = await Promise.all([
     getClientsForInvoiceForm(),
     getProjectsForInvoiceForm(clientId),
     getSuggestedInvoiceNumber(),
+    getPortalDefaultSettings(),
   ]);
 
   const backHref = projectId
@@ -47,7 +49,7 @@ export default async function NewInvoicePage({ searchParams }: NewInvoicePagePro
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New invoice</h2>
         <p className="mt-1 text-sm text-slate-500">
           Record an amount, due date, and optional manual payment link. Payments are
-          not processed in OIS Command Center.
+          not processed in OIS Management Center.
         </p>
       </div>
 
@@ -64,6 +66,7 @@ export default async function NewInvoicePage({ searchParams }: NewInvoicePagePro
               clientId: clientId ?? undefined,
               projectId: projectId ?? undefined,
               status: "DRAFT",
+              clientVisible: portalDefaults.defaultInvoiceVisible,
             }}
             lockClientId={Boolean(clientId)}
             lockProjectId={Boolean(projectId)}

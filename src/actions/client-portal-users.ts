@@ -2,13 +2,21 @@
 
 import { revalidatePath } from "next/cache";
 import { hashPassword } from "@/lib/auth/password";
+import { requireSession } from "@/lib/auth/session";
+import {
+  getSecurityRequestInfo,
+  logClientSecurityEvent,
+} from "@/lib/client-security/security-events";
+import { sendVerificationEmailForClientUser } from "@/lib/client-security/client-auth-service";
 import { prisma } from "@/lib/prisma";
+import { getPortalDefaultSettings } from "@/lib/settings";
 import { clientUserFormSchema } from "@/lib/validators/client-user";
 
 export type ClientUserActionState = {
   error?: string;
   fieldErrors?: Record<string, string>;
   success?: boolean;
+  message?: string;
 };
 
 function formatZodErrors(
@@ -29,6 +37,12 @@ function revalidateClientUserPaths(clientId: string) {
 export async function getClientUsersByClientId(clientId: string) {
   return prisma.clientUser.findMany({
     where: { clientId },
+    include: {
+      securityEvents: {
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      },
+    },
     orderBy: [{ isActive: "desc" }, { createdAt: "desc" }],
   });
 }
@@ -36,12 +50,13 @@ export async function getClientUsersByClientId(clientId: string) {
 export async function getClientPortalAccessSummary(clientId: string) {
   const users = await prisma.clientUser.findMany({
     where: { clientId },
-    select: { id: true, isActive: true },
+    select: { id: true, isActive: true, emailVerifiedAt: true },
   });
 
   return {
     totalUsers: users.length,
     activeUsers: users.filter((user) => user.isActive).length,
+    verifiedUsers: users.filter((user) => user.emailVerifiedAt).length,
     hasPortalAccess: users.some((user) => user.isActive),
   };
 }
@@ -51,6 +66,8 @@ export async function createClientUserAction(
   _prevState: ClientUserActionState,
   formData: FormData,
 ): Promise<ClientUserActionState> {
+  await requireSession();
+  const requestInfo = await getSecurityRequestInfo();
   const parsed = clientUserFormSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -77,23 +94,99 @@ export async function createClientUserAction(
     return { fieldErrors: { email: "A portal user with this email already exists" } };
   }
 
-  await prisma.clientUser.create({
+  const defaults = await getPortalDefaultSettings();
+
+  const clientUser = await prisma.clientUser.create({
     data: {
       clientId,
       name: parsed.data.name,
       email: parsed.data.email.toLowerCase(),
       passwordHash: await hashPassword(parsed.data.password),
+      isActive: defaults.defaultUserActive,
+      emailVerifiedAt: defaults.requireEmailVerificationForNewUsers ? null : new Date(),
     },
   });
 
-  revalidateClientUserPaths(clientId);
-  return { success: true };
+  await logClientSecurityEvent({
+    clientUserId: clientUser.id,
+    type: "CLIENT_USER_CREATED",
+    message: "Client portal user created by admin.",
+    requestInfo,
+  });
+
+  if (!defaults.autoSendWelcomeEmail || !defaults.requireEmailVerificationForNewUsers) {
+    revalidateClientUserPaths(clientId);
+    return {
+      success: true,
+      message: defaults.requireEmailVerificationForNewUsers
+        ? "Portal user created. Welcome email was not sent by current settings."
+        : "Portal user created and marked verified by current settings.",
+    };
+  }
+
+  try {
+    const { deliveryMode } = await sendVerificationEmailForClientUser({
+      clientUser,
+      requestInfo,
+      enforceRateLimit: false,
+    });
+    revalidateClientUserPaths(clientId);
+    return {
+      success: true,
+      message: deliveryMode === "console"
+        ? "Portal user created. Welcome email was logged to the development console."
+        : "Portal user created and welcome email sent.",
+    };
+  } catch (error) {
+    revalidateClientUserPaths(clientId);
+    return {
+      success: true,
+      message: "Portal user created, but the welcome email could not be sent. Use resend verification after configuring email.",
+      error: error instanceof Error ? error.message : "Email delivery failed",
+    };
+  }
+}
+
+export async function resendClientUserVerificationAction(
+  clientUserId: string,
+): Promise<ClientUserActionState> {
+  await requireSession();
+  const requestInfo = await getSecurityRequestInfo();
+  const clientUser = await prisma.clientUser.findUnique({ where: { id: clientUserId } });
+
+  if (!clientUser) {
+    return { error: "Portal user not found" };
+  }
+
+  if (clientUser.emailVerifiedAt) {
+    return { success: true, message: "This user is already verified." };
+  }
+
+  try {
+    const { deliveryMode } = await sendVerificationEmailForClientUser({
+      clientUser,
+      requestInfo,
+      enforceRateLimit: true,
+    });
+    revalidateClientUserPaths(clientUser.clientId);
+    return {
+      success: true,
+      message: deliveryMode === "console"
+        ? "Verification email was logged to the development console."
+        : "Verification email sent.",
+    };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Unable to send verification email.",
+    };
+  }
 }
 
 export async function setClientUserActiveAction(
   clientUserId: string,
   isActive: boolean,
 ): Promise<ClientUserActionState> {
+  await requireSession();
   const clientUser = await prisma.clientUser.findUnique({
     where: { id: clientUserId },
   });

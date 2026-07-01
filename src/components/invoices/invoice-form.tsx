@@ -294,7 +294,7 @@ export function InvoiceForm({
       <InvoiceClientSharingFields initialValues={initialValues} />
 
       <p className="text-xs text-slate-500">
-        OIS Command Center does not process payments. Use payment links for manual
+        OIS Management Center does not process payments. Use payment links for manual
         client checkout only.
       </p>
 

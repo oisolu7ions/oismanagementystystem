@@ -5,6 +5,17 @@ export const clientPortalLoginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+export const clientPortalCodeSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, "Enter the 6-digit code"),
+});
+
+export const clientPortalEmailSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address"),
+});
+
 export const clientUserFormSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   email: z.string().trim().email("Enter a valid email address"),

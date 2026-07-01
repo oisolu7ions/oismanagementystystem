@@ -6,6 +6,8 @@ type AppBrandProps = {
   linked?: boolean;
   showTagline?: boolean;
   className?: string;
+  size?: "default" | "large";
+  showLogo?: boolean;
 };
 
 export function AppBrand({
@@ -13,23 +15,36 @@ export function AppBrand({
   linked = true,
   showTagline = true,
   className = "",
+  size = "default",
+  showLogo = true,
 }: AppBrandProps) {
+  const isLarge = size === "large";
+  const logoWidth = isLarge ? 96 : 72;
+  const logoHeight = isLarge ? 72 : 54;
+  const logoClassName = isLarge ? "h-20 w-auto shrink-0" : "h-14 w-auto shrink-0";
+  const titleClassName = isLarge
+    ? "text-xl font-semibold leading-tight text-slate-900"
+    : "text-sm font-semibold leading-tight text-slate-900";
+  const taglineClassName = isLarge ? "text-sm text-slate-500" : "text-xs text-slate-500";
+
   const content = (
-    <div className={["flex items-center gap-3", className].filter(Boolean).join(" ")}>
-      <Image
-        src="/ois-logo.png"
-        alt="OIS"
-        width={48}
-        height={36}
-        className="h-9 w-auto shrink-0"
-        priority
-      />
-      <div className="min-w-0">
-        <p className="text-sm font-semibold leading-tight text-slate-900">
-          Command Center
+    <div className={["flex", isLarge ? "flex-col items-center gap-3" : "items-center gap-3", className].filter(Boolean).join(" ")}>
+      {showLogo ? (
+        <Image
+          src="/ois-logo.png"
+          alt="OIS"
+          width={logoWidth}
+          height={logoHeight}
+          className={logoClassName}
+          priority
+        />
+      ) : null}
+      <div className={isLarge ? "min-w-0 text-center" : "min-w-0"}>
+        <p className={titleClassName}>
+          Management Center
         </p>
         {showTagline ? (
-          <p className="text-xs text-slate-500">Internal operations</p>
+          <p className={taglineClassName}>Internal operations</p>
         ) : null}
       </div>
     </div>

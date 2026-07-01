@@ -1,6 +1,6 @@
 # Recurring receipts
 
-This guide explains how recurring invoice receipts work in OIS Command Center, what triggers generation today, and how to set up **automatic** receipt creation when a new billing period starts (for example, creating July’s receipt on 1 July).
+This guide explains how recurring invoice receipts work in OIS Management Center, what triggers generation today, and how to set up **automatic** receipt creation when a new billing period starts (for example, creating July’s receipt on 1 July).
 
 ---
 
@@ -164,7 +164,7 @@ Example response shape:
 
 ### Step 3 — Schedule on the VPS
 
-OIS Command Center is intended to run on a VPS with persistent disk (see [PRODUCTION.md](./PRODUCTION.md)). Use **crontab** or a **systemd timer** on that server.
+OIS Management Center is intended to run on a VPS with persistent disk (see [PRODUCTION.md](./PRODUCTION.md)). Use **crontab** or a **systemd timer** on that server.
 
 #### Option A — crontab (simplest)
 

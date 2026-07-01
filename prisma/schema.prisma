@@ -1,4 +1,4 @@
-// OIS Command Center — domain schema (lifecycle-ready for later phases)
+// OIS Management Center — domain schema (lifecycle-ready for later phases)
 
 generator client {
   provider = "prisma-client"
@@ -184,6 +184,32 @@ enum UpdateRequestPriority {
   URGENT
 }
 
+enum SettingValueType {
+  STRING
+  BOOLEAN
+  NUMBER
+  JSON
+}
+
+enum SecurityEventType {
+  CLIENT_USER_CREATED
+  VERIFICATION_EMAIL_SENT
+  EMAIL_VERIFIED
+  VERIFICATION_FAILED
+  LOGIN_PASSWORD_SUCCESS
+  LOGIN_PASSWORD_FAILED
+  LOGIN_CODE_SENT
+  LOGIN_CODE_SUCCESS
+  LOGIN_CODE_FAILED
+  LOGIN_CODE_EXPIRED
+  LOGIN_SUCCESS
+  LOGIN_BLOCKED_UNVERIFIED_EMAIL
+  LOGOUT
+  RATE_LIMITED
+  ADMIN_SETTING_CHANGED
+  TEST_EMAIL_SENT
+}
+
 enum UpdateRequestStatus {
   SUBMITTED
   UNDER_REVIEW
@@ -195,6 +221,20 @@ enum UpdateRequestStatus {
   COMPLETED
   DECLINED
   CANCELLED
+}
+
+model Setting {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  value       String           @db.Text
+  type        SettingValueType @default(STRING)
+  group       String
+  description String?          @db.Text
+  isSecret    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([group])
 }
 
 model User {
@@ -270,11 +310,56 @@ model ClientUser {
   passwordHash String
   isActive     Boolean   @default(true)
   lastLoginAt  DateTime?
+  emailVerifiedAt DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
   updateRequests UpdateRequest[]
   uploadedAttachments UpdateRequestAttachment[]
+  emailVerificationTokens ClientEmailVerificationToken[]
+  loginCodes ClientLoginCode[]
+  securityEvents SecurityEvent[]
+}
+
+model ClientEmailVerificationToken {
+  id           String     @id @default(cuid())
+  clientUserId String
+  clientUser   ClientUser @relation(fields: [clientUserId], references: [id], onDelete: Cascade)
+  tokenHash    String     @unique
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime   @default(now())
+
+  @@index([clientUserId, createdAt])
+  @@index([expiresAt])
+}
+
+model ClientLoginCode {
+  id           String     @id @default(cuid())
+  clientUserId String
+  clientUser   ClientUser @relation(fields: [clientUserId], references: [id], onDelete: Cascade)
+  codeHash     String
+  expiresAt    DateTime
+  usedAt       DateTime?
+  attempts     Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  @@index([clientUserId, createdAt])
+  @@index([expiresAt])
+}
+
+model SecurityEvent {
+  id           String            @id @default(cuid())
+  clientUserId String?
+  clientUser   ClientUser?       @relation(fields: [clientUserId], references: [id], onDelete: SetNull)
+  type         SecurityEventType
+  ipAddress    String?
+  userAgent    String?           @db.Text
+  message      String            @db.Text
+  createdAt    DateTime          @default(now())
+
+  @@index([clientUserId, createdAt])
+  @@index([type, createdAt])
 }
 
 model Package {

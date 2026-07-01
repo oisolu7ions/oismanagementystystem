@@ -3,6 +3,7 @@ import { createTaskAction } from "@/actions/task-mutations";
 import { getProjectsForTaskForm } from "@/actions/tasks";
 import { TaskForm } from "@/components/tasks/task-form";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { getPortalDefaultSettings } from "@/lib/settings";
 
 type NewTaskPageProps = {
   searchParams: Promise<{ projectId?: string }>;
@@ -14,7 +15,10 @@ export const metadata = {
 
 export default async function NewTaskPage({ searchParams }: NewTaskPageProps) {
   const { projectId } = await searchParams;
-  const projects = await getProjectsForTaskForm();
+  const [projects, portalDefaults] = await Promise.all([
+    getProjectsForTaskForm(),
+    getPortalDefaultSettings(),
+  ]);
 
   const backHref = projectId
     ? `/dashboard/projects/${projectId}`
@@ -47,6 +51,7 @@ export default async function NewTaskPage({ searchParams }: NewTaskPageProps) {
               projectId: projectId ?? undefined,
               status: "TODO",
               priority: "MEDIUM",
+              clientVisible: portalDefaults.defaultTaskVisible,
             }}
             lockProjectId={Boolean(projectId)}
           />
