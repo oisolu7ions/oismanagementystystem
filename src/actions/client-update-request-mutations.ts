@@ -180,7 +180,7 @@ export async function createClientUpdateRequestAction(
   });
 
   revalidateClientUpdateRequestPaths(session.clientId, updateRequest.id);
-  redirect(`/client/update-requests/${updateRequest.id}`);
+  redirect(`/client/update-requests/${updateRequest.id}?submitted=1`);
 }
 
 export async function updateClientUpdateRequestAction(

@@ -25,6 +25,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
 type ClientUpdateRequestDetailPageProps = {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ submitted?: string }>;
 };
 
 export async function generateMetadata({ params }: ClientUpdateRequestDetailPageProps) {
@@ -36,8 +37,11 @@ export async function generateMetadata({ params }: ClientUpdateRequestDetailPage
 
 export default async function ClientUpdateRequestDetailPage({
   params,
+  searchParams,
 }: ClientUpdateRequestDetailPageProps) {
   const { id } = await params;
+  const submittedParams = searchParams ? await searchParams : {};
+  const showSubmittedConfirmation = submittedParams.submitted === "1";
   const session = await requireClientPortalSession();
   const [request, projects] = await Promise.all([
     getClientPortalUpdateRequestById(session.clientId, id),
@@ -72,6 +76,15 @@ export default async function ClientUpdateRequestDetailPage({
           <UpdateRequestTypeBadge type={request.requestType} />
         </div>
       </div>
+
+      {showSubmittedConfirmation ? (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <p className="font-medium">Update request submitted.</p>
+          <p className="mt-1 text-emerald-700">
+            OIS received your request and will review it soon.
+          </p>
+        </div>
+      ) : null}
 
       {!canEdit ? (
         <>

@@ -46,6 +46,9 @@ export async function getSettingsSystemStatus(): Promise<SettingsSystemStatus> {
   if (nodeEnv === "production" && emailSettings.providerMode === "console") {
     warnings.push("Production mode is using console email delivery.");
   }
+  if (process.env.APP_ENV !== "production" && process.env.OIS_VALIDATE_PRODUCTION_ENV !== "true") {
+    warnings.push("Strict production env validation is off. Set APP_ENV=production or OIS_VALIDATE_PRODUCTION_ENV=true before launch.");
+  }
 
   return {
     nodeEnv,

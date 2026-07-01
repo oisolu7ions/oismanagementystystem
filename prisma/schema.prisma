@@ -208,6 +208,12 @@ enum SecurityEventType {
   RATE_LIMITED
   ADMIN_SETTING_CHANGED
   TEST_EMAIL_SENT
+  ADMIN_LOGIN_SUCCESS
+  ADMIN_LOGIN_FAILED
+  FILE_UPLOAD_ACCEPTED
+  FILE_UPLOAD_REJECTED
+  SESSION_REVOKED
+  SESSION_EXPIRED
 }
 
 enum UpdateRequestStatus {
@@ -248,6 +254,8 @@ model User {
 
   assignedTasks Task[] @relation("AssignedTasks")
   notes         Note[]
+  adminSessions AdminSession[]
+  securityEvents SecurityEvent[]
 }
 
 model Lead {
@@ -319,6 +327,7 @@ model ClientUser {
   emailVerificationTokens ClientEmailVerificationToken[]
   loginCodes ClientLoginCode[]
   securityEvents SecurityEvent[]
+  portalSessions ClientPortalSession[]
 }
 
 model ClientEmailVerificationToken {
@@ -350,16 +359,67 @@ model ClientLoginCode {
 
 model SecurityEvent {
   id           String            @id @default(cuid())
+  userId       String?
+  user         User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
   clientUserId String?
   clientUser   ClientUser?       @relation(fields: [clientUserId], references: [id], onDelete: SetNull)
   type         SecurityEventType
   ipAddress    String?
   userAgent    String?           @db.Text
   message      String            @db.Text
+  metadata     Json?
   createdAt    DateTime          @default(now())
 
   @@index([clientUserId, createdAt])
+  @@index([userId, createdAt])
   @@index([type, createdAt])
+}
+
+model AdminSession {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  lastSeenAt DateTime  @default(now())
+  revokedAt  DateTime?
+  ipAddress  String?
+  userAgent  String?   @db.Text
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+}
+
+model ClientPortalSession {
+  id           String     @id @default(cuid())
+  clientUserId String
+  clientUser   ClientUser @relation(fields: [clientUserId], references: [id], onDelete: Cascade)
+  clientId     String
+  expiresAt    DateTime
+  lastSeenAt   DateTime   @default(now())
+  revokedAt    DateTime?
+  ipAddress    String?
+  userAgent    String?    @db.Text
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([clientUserId, revokedAt])
+  @@index([clientId])
+  @@index([expiresAt])
+}
+
+model RateLimitBucket {
+  id        String   @id @default(cuid())
+  scope     String
+  key       String
+  count     Int      @default(0)
+  resetAt   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([scope, key])
+  @@index([resetAt])
 }
 
 model Package {

@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export type ClientSecurityEventType =
@@ -16,8 +17,14 @@ export type ClientSecurityEventType =
   | "LOGIN_BLOCKED_UNVERIFIED_EMAIL"
   | "LOGOUT"
   | "RATE_LIMITED"
+  | "ADMIN_LOGIN_SUCCESS"
+  | "ADMIN_LOGIN_FAILED"
   | "ADMIN_SETTING_CHANGED"
-  | "TEST_EMAIL_SENT";
+  | "TEST_EMAIL_SENT"
+  | "FILE_UPLOAD_ACCEPTED"
+  | "FILE_UPLOAD_REJECTED"
+  | "SESSION_REVOKED"
+  | "SESSION_EXPIRED";
 
 export type SecurityRequestInfo = {
   ipAddress?: string;
@@ -36,21 +43,27 @@ export async function getSecurityRequestInfo(): Promise<SecurityRequestInfo> {
 }
 
 export async function logClientSecurityEvent({
+  userId,
   clientUserId,
   type,
   message,
   requestInfo,
+  metadata,
 }: {
+  userId?: string;
   clientUserId?: string;
   type: ClientSecurityEventType;
   message: string;
   requestInfo?: SecurityRequestInfo;
+  metadata?: Prisma.InputJsonValue;
 }): Promise<void> {
   await prisma.securityEvent.create({
     data: {
+      userId,
       clientUserId,
       type,
       message,
+      metadata,
       ipAddress: requestInfo?.ipAddress,
       userAgent: requestInfo?.userAgent,
     },

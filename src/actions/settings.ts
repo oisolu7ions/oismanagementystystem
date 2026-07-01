@@ -5,6 +5,7 @@ import { z } from "zod";
 import { sendEmail } from "@/lib/email/provider";
 import { requireSession } from "@/lib/auth/session";
 import { getSecurityRequestInfo, logClientSecurityEvent } from "@/lib/client-security/security-events";
+import { consumeRateLimit, rateLimitMessage } from "@/lib/security/rate-limit";
 import { getSetting, updateSetting } from "@/lib/settings";
 import type { SettingType } from "@/lib/settings/defaults";
 
@@ -270,11 +271,14 @@ const testEmailSchema = z.object({
   testRecipient: z.string().trim().email("Enter a valid recipient email"),
 });
 
+const TEST_EMAIL_WINDOW_SECONDS = 15 * 60;
+const TEST_EMAIL_USER_LIMIT = 5;
+
 export async function sendTestEmailAction(
   _prevState: SettingsActionState,
   formData: FormData,
 ): Promise<SettingsActionState> {
-  await requireSession();
+  const session = await requireSession();
   const parsed = testEmailSchema.safeParse({
     testRecipient: formData.get("testRecipient"),
   });
@@ -282,6 +286,21 @@ export async function sendTestEmailAction(
   if (!parsed.success) return formatZodErrors(parsed.error.issues);
 
   const requestInfo = await getSecurityRequestInfo();
+  const testEmailLimit = await consumeRateLimit({
+    scope: "admin-test-email-user",
+    key: session.userId,
+    limit: TEST_EMAIL_USER_LIMIT,
+    windowSeconds: TEST_EMAIL_WINDOW_SECONDS,
+  });
+
+  if (testEmailLimit.limited) {
+    await logClientSecurityEvent({
+      type: "RATE_LIMITED",
+      message: "Admin test email rate limit reached.",
+      requestInfo,
+    });
+    return { error: rateLimitMessage(testEmailLimit.retryAfterSeconds) };
+  }
   const deliveryMode = await sendEmail({
     to: parsed.data.testRecipient,
     subject: "OIS test email",
