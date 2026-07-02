@@ -24,7 +24,8 @@ export type ClientSecurityEventType =
   | "FILE_UPLOAD_ACCEPTED"
   | "FILE_UPLOAD_REJECTED"
   | "SESSION_REVOKED"
-  | "SESSION_EXPIRED";
+  | "SESSION_EXPIRED"
+  | "CLIENT_PASSWORD_RESET_BY_ADMIN";
 
 export type SecurityRequestInfo = {
   ipAddress?: string;

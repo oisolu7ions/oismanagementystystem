@@ -1,6 +1,6 @@
 import net from "net";
 import tls from "tls";
-import { getEmailSettings } from "@/lib/settings";
+import { getBusinessSettings, getEmailSettings } from "@/lib/settings";
 
 export type EmailMessage = {
   to: string;
@@ -15,6 +15,8 @@ type EmailRuntimeSettings = {
   from: string;
   replyTo?: string;
 };
+
+type BusinessEmailSettings = Awaited<ReturnType<typeof getBusinessSettings>>;
 
 function getAppUrl(): string {
   return process.env.APP_URL?.replace(/\/$/, "") || "http://localhost:3000";
@@ -31,6 +33,50 @@ function extractEmailAddress(value: string): string {
 
 function normalizeHeaderValue(value: string): string {
   return value.replace(/[\r\n]+/g, " ").trim();
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function quoteDisplayName(value: string): string {
+  return `"${normalizeHeaderValue(value).replace(/["\\]/g, "\\$&")}"`;
+}
+
+function withSenderDisplayName(from: string, senderName: string): string {
+  const cleanFrom = normalizeHeaderValue(from);
+  const cleanName = normalizeHeaderValue(senderName);
+  const address = extractEmailAddress(cleanFrom);
+
+  if (!cleanName || !address) return cleanFrom;
+  return `${quoteDisplayName(cleanName)} <${address}>`;
+}
+
+function buildFooterLines(business: BusinessEmailSettings): string[] {
+  const websiteUrl = business.websiteUrl.trim();
+  return websiteUrl ? [`Website: ${websiteUrl}`] : [];
+}
+
+function appendBusinessFooter(message: EmailMessage, business: BusinessEmailSettings): EmailMessage {
+  const footerLines = buildFooterLines(business);
+  if (footerLines.length === 0) return message;
+
+  const textFooter = ["", "--", ...footerLines].join("\n");
+  const htmlFooter = [
+    "<hr>",
+    ...footerLines.map((line) => `<p>${escapeHtml(line)}</p>`),
+  ].join("");
+
+  return {
+    ...message,
+    text: `${message.text}${textFooter}`,
+    html: message.html ? `${message.html}${htmlFooter}` : undefined,
+  };
 }
 
 function buildRawMessage(message: EmailMessage, settings: EmailRuntimeSettings): string {
@@ -147,29 +193,35 @@ async function sendSmtpEmail(message: EmailMessage, settings: EmailRuntimeSettin
 }
 
 export async function sendEmail(message: EmailMessage): Promise<EmailDeliveryResult> {
-  const emailSettings = await getEmailSettings();
+  const [emailSettings, businessSettings] = await Promise.all([
+    getEmailSettings(),
+    getBusinessSettings(),
+  ]);
   const provider = emailSettings.providerMode;
+  const fromAddress = emailSettings.from || "no-reply@localhost";
+  const senderName = businessSettings.defaultSenderName || businessSettings.name || "OIS Management Center";
+  const decoratedMessage = appendBusinessFooter(message, businessSettings);
   const runtimeSettings: EmailRuntimeSettings = {
-    from: emailSettings.from || "OIS Management Center <no-reply@localhost>",
-    replyTo: emailSettings.replyTo || undefined,
+    from: withSenderDisplayName(fromAddress, senderName),
+    replyTo: emailSettings.replyTo || businessSettings.supportEmail || undefined,
   };
 
   if (provider === "disabled") {
-    console.warn(`[OIS email:disabled] ${message.subject} to ${message.to}`);
+    console.warn(`[OIS email:disabled] ${decoratedMessage.subject} to ${decoratedMessage.to}`);
     return "disabled";
   }
 
   if (provider === "smtp") {
-    await sendSmtpEmail(message, runtimeSettings);
+    await sendSmtpEmail(decoratedMessage, runtimeSettings);
     return "smtp";
   }
 
   console.log("\n[OIS email:console]");
   console.log(`From: ${runtimeSettings.from}`);
   if (runtimeSettings.replyTo) console.log(`Reply-To: ${runtimeSettings.replyTo}`);
-  console.log(`To: ${message.to}`);
-  console.log(`Subject: ${message.subject}`);
-  console.log(message.text);
+  console.log(`To: ${decoratedMessage.to}`);
+  console.log(`Subject: ${decoratedMessage.subject}`);
+  console.log(decoratedMessage.text);
   console.log("[/OIS email:console]\n");
   return "console";
 }

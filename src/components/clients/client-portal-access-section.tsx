@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import {
   createClientUserAction,
   resendClientUserVerificationAction,
+  resetClientUserPasswordAction,
   setClientUserActiveAction,
   type ClientUserActionState,
 } from "@/actions/client-portal-users";
@@ -95,6 +96,82 @@ function CreateClientUserForm({ clientId }: { clientId: string }) {
   );
 }
 
+function ResetClientUserPasswordForm({ clientUserId }: { clientUserId: string }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [state, formAction, pending] = useActionState(
+    resetClientUserPasswordAction.bind(null, clientUserId),
+    initialState,
+  );
+
+  useEffect(() => {
+    if (state.success) {
+      setOpen(false);
+      router.refresh();
+    }
+  }, [router, state.success]);
+
+  if (!open) {
+    return (
+      <Button type="button" size="sm" variant="secondary" onClick={() => setOpen(true)}>
+        Reset password
+      </Button>
+    );
+  }
+
+  return (
+    <form
+      action={formAction}
+      className="mt-3 space-y-3 rounded-lg border border-slate-200 bg-white p-3"
+    >
+      <p className="text-sm font-medium text-slate-800">Set a new password</p>
+      <p className="text-xs text-slate-500">
+        This signs the client out of any active portal sessions. Share the new password securely.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Input
+          label="New password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          placeholder="At least 8 characters"
+          required
+        />
+        <Input
+          label="Confirm password"
+          name="confirmPassword"
+          type="password"
+          autoComplete="new-password"
+          placeholder="Repeat password"
+          required
+        />
+      </div>
+      {state.fieldErrors?.password ? (
+        <p className="text-xs text-red-600">{state.fieldErrors.password}</p>
+      ) : null}
+      {state.fieldErrors?.confirmPassword ? (
+        <p className="text-xs text-red-600">{state.fieldErrors.confirmPassword}</p>
+      ) : null}
+      {state.message ? <p className="text-sm text-emerald-700">{state.message}</p> : null}
+      {state.error ? <p className="text-sm text-red-600">{state.error}</p> : null}
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" size="sm" disabled={pending}>
+          {pending ? "Saving..." : "Save new password"}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          disabled={pending}
+          onClick={() => setOpen(false)}
+        >
+          Cancel
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 function ClientUserRow({ user }: { user: PortalUser }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -165,6 +242,8 @@ function ClientUserRow({ user }: { user: PortalUser }) {
           </Button>
         </div>
       </div>
+
+      <ResetClientUserPasswordForm clientUserId={user.id} />
 
       {user.securityEvents && user.securityEvents.length > 0 ? (
         <div className="rounded-lg bg-slate-50 px-3 py-2">

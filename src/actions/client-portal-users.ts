@@ -10,7 +10,7 @@ import {
 import { sendVerificationEmailForClientUser } from "@/lib/client-security/client-auth-service";
 import { prisma } from "@/lib/prisma";
 import { getPortalDefaultSettings } from "@/lib/settings";
-import { clientUserFormSchema } from "@/lib/validators/client-user";
+import { clientUserFormSchema, clientUserPasswordResetSchema } from "@/lib/validators/client-user";
 
 export type ClientUserActionState = {
   error?: string;
@@ -202,4 +202,62 @@ export async function setClientUserActiveAction(
 
   revalidateClientUserPaths(clientUser.clientId);
   return { success: true };
+}
+
+export async function resetClientUserPasswordAction(
+  clientUserId: string,
+  _prevState: ClientUserActionState,
+  formData: FormData,
+): Promise<ClientUserActionState> {
+  const admin = await requireSession();
+  const requestInfo = await getSecurityRequestInfo();
+
+  const parsed = clientUserPasswordResetSchema.safeParse({
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+
+  if (!parsed.success) {
+    return formatZodErrors(parsed.error.issues);
+  }
+
+  const clientUser = await prisma.clientUser.findUnique({
+    where: { id: clientUserId },
+  });
+
+  if (!clientUser) {
+    return { error: "Portal user not found" };
+  }
+
+  const now = new Date();
+
+  await prisma.$transaction([
+    prisma.clientUser.update({
+      where: { id: clientUserId },
+      data: { passwordHash: await hashPassword(parsed.data.password) },
+    }),
+    prisma.clientPortalSession.updateMany({
+      where: { clientUserId, revokedAt: null },
+      data: { revokedAt: now },
+    }),
+    prisma.clientLoginCode.updateMany({
+      where: { clientUserId, usedAt: null },
+      data: { usedAt: now },
+    }),
+  ]);
+
+  await logClientSecurityEvent({
+    userId: admin.userId,
+    clientUserId: clientUser.id,
+    type: "CLIENT_PASSWORD_RESET_BY_ADMIN",
+    message: `Admin reset password for client portal user ${clientUser.email}.`,
+    requestInfo,
+    metadata: { clientUserId: clientUser.id, clientId: clientUser.clientId },
+  });
+
+  revalidateClientUserPaths(clientUser.clientId);
+  return {
+    success: true,
+    message: "Password reset. The client must sign in again with the new password.",
+  };
 }

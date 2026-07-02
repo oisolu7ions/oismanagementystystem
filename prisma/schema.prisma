@@ -214,6 +214,7 @@ enum SecurityEventType {
   FILE_UPLOAD_REJECTED
   SESSION_REVOKED
   SESSION_EXPIRED
+  CLIENT_PASSWORD_RESET_BY_ADMIN
 }
 
 enum UpdateRequestStatus {
