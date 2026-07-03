@@ -5,17 +5,62 @@ import {
   createRecurringReceiptForPeriod,
   generateDueRecurringReceipts,
 } from "@/lib/receipts/create-receipt";
+import { deleteStoredReceiptFile } from "@/lib/receipts/storage";
 import { prisma } from "@/lib/prisma";
 import {
   formatBillingPeriodLabel,
   getBillingPeriodKey,
 } from "@/lib/receipts/billing-period";
 
-function revalidateInvoiceReceiptPaths(invoiceId?: string) {
+function revalidateInvoiceReceiptPaths(
+  invoiceId?: string,
+  clientId?: string,
+  projectId?: string | null,
+) {
   revalidatePath("/dashboard/invoices");
   if (invoiceId) {
     revalidatePath(`/dashboard/invoices/${invoiceId}`);
+    revalidatePath(`/client/invoices/${invoiceId}`);
   }
+  if (clientId) {
+    revalidatePath(`/dashboard/clients/${clientId}`);
+  }
+  if (projectId) {
+    revalidatePath(`/dashboard/projects/${projectId}`);
+  }
+  revalidatePath("/client/invoices");
+}
+
+export async function deleteReceiptAction(
+  receiptId: string,
+): Promise<{ success?: boolean; error?: string }> {
+  const receipt = await prisma.receipt.findUnique({
+    where: { id: receiptId },
+    include: {
+      invoice: {
+        select: {
+          id: true,
+          clientId: true,
+          projectId: true,
+        },
+      },
+    },
+  });
+
+  if (!receipt) {
+    return { error: "Receipt not found" };
+  }
+
+  await prisma.receipt.delete({ where: { id: receiptId } });
+  await deleteStoredReceiptFile(receipt.storedFileName);
+
+  revalidateInvoiceReceiptPaths(
+    receipt.invoice.id,
+    receipt.invoice.clientId,
+    receipt.invoice.projectId,
+  );
+
+  return { success: true };
 }
 
 export async function generateRecurringReceiptAction(invoiceId: string) {

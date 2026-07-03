@@ -22,7 +22,7 @@ export function ClientPortalShell({
   const [navOpen, setNavOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <button
         type="button"
         aria-label="Close navigation menu"
@@ -35,7 +35,7 @@ export function ClientPortalShell({
 
       <aside
         className={[
-          "fixed inset-y-0 left-0 z-50 flex w-64 max-w-[85vw] flex-col border-r border-slate-200 bg-white transition-transform duration-200 ease-out lg:static lg:z-auto lg:max-w-none lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-64 max-w-[85vw] flex-col border-r border-slate-200 bg-white transition-transform duration-200 ease-out lg:max-w-none lg:translate-x-0",
           navOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         ].join(" ")}
       >
@@ -47,12 +47,12 @@ export function ClientPortalShell({
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:ml-64">
         <ClientPortalHeader session={session} onMenuClick={() => setNavOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
         {showFooter ? (
           <LegalSupportFooter
-            className="border-t border-slate-200 bg-white/80 px-4 py-4 sm:px-6"
+            className="shrink-0 border-t border-slate-200 bg-white/80 px-4 py-4 sm:px-6"
             links={footerLinks}
           />
         ) : null}

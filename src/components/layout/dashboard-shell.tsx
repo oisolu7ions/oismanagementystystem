@@ -15,11 +15,11 @@ export function DashboardShell({
 }) {
   return (
     <MobileNavProvider>
-      <div className="flex min-h-screen">
+      <div className="flex h-screen overflow-hidden">
         <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:ml-64">
           <DashboardHeader session={session} />
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+          <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
         </div>
       </div>
     </MobileNavProvider>

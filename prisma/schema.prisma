@@ -522,6 +522,7 @@ model Receipt {
   clientName       String
   clientBusiness   String?
   clientEmail      String?
+  clientVisible    Boolean  @default(false)
   storedFileName   String
   originalFileName String
   mimeType         String   @default("application/pdf")

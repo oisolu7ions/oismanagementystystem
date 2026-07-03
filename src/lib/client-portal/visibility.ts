@@ -43,6 +43,13 @@ export function clientVisibleDocumentWhere(clientId: string): Prisma.DocumentLin
   };
 }
 
+export function clientVisibleReceiptWhere(clientId: string): Prisma.ReceiptWhereInput {
+  return {
+    clientVisible: true,
+    invoice: clientVisibleInvoiceWhere(clientId),
+  };
+}
+
 export function clientVisibleActivityWhere(clientId: string): Prisma.ActivityWhereInput {
   return {
     clientVisible: true,

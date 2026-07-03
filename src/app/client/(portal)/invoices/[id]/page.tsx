@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BackLink } from "@/components/layout/back-link";
-import { getClientPortalInvoiceById } from "@/lib/client-portal/queries";
+import { ClientInvoiceReceiptsSection } from "@/components/invoices/client-invoice-receipts-section";
+import {
+  getClientPortalInvoiceById,
+  getClientPortalReceiptsByInvoiceId,
+} from "@/lib/client-portal/queries";
 import { requireClientPortalSession } from "@/lib/client-portal/require-session";
 import { formatInvoiceDate } from "@/lib/invoices/constants";
 import { InvoicePaymentLink } from "@/components/invoices/invoice-payment-link";
@@ -22,7 +26,10 @@ export async function generateMetadata({ params }: ClientInvoicePageProps) {
 export default async function ClientInvoiceDetailPage({ params }: ClientInvoicePageProps) {
   const { id } = await params;
   const session = await requireClientPortalSession();
-  const invoice = await getClientPortalInvoiceById(session.clientId, id);
+  const [invoice, receipts] = await Promise.all([
+    getClientPortalInvoiceById(session.clientId, id),
+    getClientPortalReceiptsByInvoiceId(session.clientId, id),
+  ]);
 
   if (!invoice) {
     notFound();
@@ -85,6 +92,8 @@ export default async function ClientInvoiceDetailPage({ params }: ClientInvoiceP
           </div>
         </CardBody>
       </Card>
+
+      <ClientInvoiceReceiptsSection receipts={receipts} />
     </div>
   );
 }

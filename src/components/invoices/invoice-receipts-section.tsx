@@ -1,4 +1,6 @@
 import { getReceiptFileUrl } from "@/actions/receipts";
+import { ReceiptClientVisibilityToggle } from "@/components/invoices/receipt-client-visibility-toggle";
+import { ReceiptDeleteButton } from "@/components/invoices/receipt-delete-button";
 import { formatBillingPeriodLabel } from "@/lib/receipts/billing-period";
 import type { InvoiceRecurrenceInterval } from "@/generated/prisma/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +13,7 @@ type InvoiceReceipt = {
   amount: string;
   paidAt: Date;
   billingPeriod: string | null;
+  clientVisible: boolean;
   createdAt: Date;
 };
 
@@ -77,12 +80,24 @@ export function InvoiceReceiptsSection({
                   {" · Paid "}
                   {receipt.paidAt.toLocaleString()}
                 </p>
+                <div className="mt-2">
+                  <ReceiptClientVisibilityToggle
+                    receiptId={receipt.id}
+                    clientVisible={receipt.clientVisible}
+                  />
+                </div>
               </div>
-              <a href={getReceiptFileUrl(receipt.id)} target="_blank" rel="noopener noreferrer">
-                <Button type="button" variant="secondary" size="sm">
-                  Download receipt
-                </Button>
-              </a>
+              <div className="flex flex-wrap gap-2">
+                <a href={getReceiptFileUrl(receipt.id)} target="_blank" rel="noopener noreferrer">
+                  <Button type="button" variant="secondary" size="sm">
+                    Download receipt
+                  </Button>
+                </a>
+                <ReceiptDeleteButton
+                  receiptId={receipt.id}
+                  receiptNumber={receipt.receiptNumber}
+                />
+              </div>
             </div>
           );
         })}

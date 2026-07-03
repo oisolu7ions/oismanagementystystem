@@ -5,6 +5,7 @@ import {
   clientVisibleDocumentWhere,
   clientVisibleInvoiceWhere,
   clientVisibleProjectWhere,
+  clientVisibleReceiptWhere,
   clientVisibleTaskWhere,
   getClientSafeActivityMessage,
 } from "@/lib/client-portal/visibility";
@@ -165,6 +166,19 @@ export async function getClientPortalInvoiceById(clientId: string, invoiceId: st
     include: {
       project: { select: { id: true, name: true } },
     },
+  });
+}
+
+export async function getClientPortalReceiptsByInvoiceId(
+  clientId: string,
+  invoiceId: string,
+) {
+  return prisma.receipt.findMany({
+    where: {
+      invoiceId,
+      ...clientVisibleReceiptWhere(clientId),
+    },
+    orderBy: { createdAt: "desc" },
   });
 }
 

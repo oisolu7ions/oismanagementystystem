@@ -10,3 +10,7 @@ export async function getReceiptsByInvoiceId(invoiceId: string) {
 export function getReceiptFileUrl(receiptId: string): string {
   return `/api/receipts/${receiptId}/file`;
 }
+
+export function getClientReceiptFileUrl(receiptId: string): string {
+  return `/api/client/receipts/${receiptId}/file`;
+}

@@ -33,6 +33,8 @@ function revalidateEntityPaths(options: {
   if (options.invoiceId) {
     revalidatePath(`/dashboard/invoices/${options.invoiceId}`);
     revalidatePath(`/dashboard/invoices/${options.invoiceId}/edit`);
+    revalidatePath(`/client/invoices/${options.invoiceId}`);
+    revalidatePath("/client/invoices");
   }
   if (options.documentId) {
     revalidatePath(`/dashboard/documents/${options.documentId}`);
@@ -116,6 +118,32 @@ export async function setDocumentClientVisibleAction(
     clientId: document.clientId,
     projectId: document.projectId,
     documentId: document.id,
+  });
+  return { success: true };
+}
+
+export async function setReceiptClientVisibleAction(
+  receiptId: string,
+  clientVisible: boolean,
+): Promise<ClientSharingActionState> {
+  const receipt = await prisma.receipt.update({
+    where: { id: receiptId },
+    data: { clientVisible },
+    include: {
+      invoice: {
+        select: {
+          id: true,
+          clientId: true,
+          projectId: true,
+        },
+      },
+    },
+  });
+
+  revalidateEntityPaths({
+    clientId: receipt.invoice.clientId,
+    projectId: receipt.invoice.projectId,
+    invoiceId: receipt.invoice.id,
   });
   return { success: true };
 }
