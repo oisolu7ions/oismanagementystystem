@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/components/layout/back-link";
 import { createInvoiceAction } from "@/actions/invoice-mutations";
 import {
   getClientsForInvoiceForm,
@@ -31,21 +31,11 @@ export default async function NewInvoicePage({ searchParams }: NewInvoicePagePro
     : clientId
       ? `/dashboard/clients/${clientId}`
       : "/dashboard/invoices";
-  const backLabel = projectId
-    ? "← Back to project"
-    : clientId
-      ? "← Back to client"
-      : "← Back to invoices";
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={backHref}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          {backLabel}
-        </Link>
+        <BackLink fallbackHref={backHref} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New invoice</h2>
         <p className="mt-1 text-sm text-slate-500">
           Record an amount, due date, and optional manual payment link. Payments are

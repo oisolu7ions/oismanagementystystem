@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackLink } from "@/components/layout/back-link";
 import { getClientPortalUpdates } from "@/lib/client-portal/queries";
 import { requireClientPortalSession } from "@/lib/client-portal/require-session";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -14,12 +15,7 @@ export default async function ClientUpdatesPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
-        <Link
-          href="/client/dashboard"
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to overview
-        </Link>
+        <BackLink fallbackHref="/client/dashboard" />
         <h1 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Project Updates
         </h1>

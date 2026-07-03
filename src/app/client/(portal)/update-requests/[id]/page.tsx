@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import {
   updateClientUpdateRequestAction,
 } from "@/actions/client-update-request-mutations";
@@ -63,12 +64,7 @@ export default async function ClientUpdateRequestDetailPage({
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
-        <Link
-          href="/client/update-requests"
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to update requests
-        </Link>
+        <BackLink fallbackHref="/client/update-requests" />
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl">{request.title}</h1>
           <UpdateRequestStatusBadge status={request.status} />

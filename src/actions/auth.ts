@@ -1,6 +1,6 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth/password";
 import { createSession, deleteSession } from "@/lib/auth/session";
@@ -106,10 +106,10 @@ export async function loginAction(
     role: user.role,
   });
 
-  redirect("/dashboard");
+  redirect("/dashboard", RedirectType.replace);
 }
 
 export async function logoutAction(): Promise<void> {
   await deleteSession();
-  redirect("/login");
+  redirect("/login", RedirectType.replace);
 }

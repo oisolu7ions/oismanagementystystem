@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { getDocumentById } from "@/actions/documents";
 import { DocumentDeleteButton } from "@/components/documents/document-delete-button";
 import { DocumentFileTypeBadge } from "@/components/documents/document-file-type-badge";
@@ -41,12 +42,7 @@ export default async function DocumentDetailPage({ params }: DocumentDetailPageP
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Link
-            href="/dashboard/documents"
-            className="text-sm font-medium text-slate-500 hover:text-slate-900"
-          >
-            ← Back to documents
-          </Link>
+          <BackLink fallbackHref="/dashboard/documents" />
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">{document.name}</h2>
             <DocumentFileTypeBadge fileType={document.fileType} />

@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { NavigationHistoryTracker } from "@/components/layout/navigation-history-tracker";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,7 +44,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full text-slate-900">{children}</body>
+      <body className="min-h-full text-slate-900">
+        <Suspense fallback={null}>
+          <NavigationHistoryTracker />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }

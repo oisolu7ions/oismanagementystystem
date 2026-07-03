@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { getClientPortalInvoiceById } from "@/lib/client-portal/queries";
 import { requireClientPortalSession } from "@/lib/client-portal/require-session";
 import { formatInvoiceDate } from "@/lib/invoices/constants";
@@ -30,12 +31,7 @@ export default async function ClientInvoiceDetailPage({ params }: ClientInvoiceP
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href="/client/invoices"
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to invoices
-        </Link>
+        <BackLink fallbackHref="/client/invoices" />
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl">
             {invoice.invoiceNumber}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { getClientPortalProjectById } from "@/lib/client-portal/queries";
 import { requireClientPortalSession } from "@/lib/client-portal/require-session";
 import { getClientSafeActivityMessage } from "@/lib/client-portal/visibility";
@@ -35,12 +36,7 @@ export default async function ClientProjectDetailPage({ params }: ClientProjectP
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
-        <Link
-          href="/client/projects"
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to projects
-        </Link>
+        <BackLink fallbackHref="/client/projects" />
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl">
             {project.name}

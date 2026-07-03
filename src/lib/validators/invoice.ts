@@ -68,6 +68,12 @@ export function parseInvoiceDueDate(value?: string): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+export function parseInvoicePaidDate(value?: string | null): Date | null {
+  if (!value?.trim()) return null;
+  const parsed = new Date(`${value}T12:00:00`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 export function invoiceInputToDbFields(input: InvoiceFormInput) {
   const status = input.status as InvoiceStatus;
   const isRecurring = input.isRecurring ?? false;

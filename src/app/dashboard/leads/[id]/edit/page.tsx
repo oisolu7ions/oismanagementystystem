@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { getLeadById } from "@/actions/leads";
 import { LeadForm } from "@/components/leads/lead-form";
 import { followUpDateToInputValue } from "@/lib/leads/constants";
@@ -26,12 +26,7 @@ export default async function EditLeadPage({ params }: EditLeadPageProps) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={`/dashboard/leads/${lead.id}`}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to lead
-        </Link>
+        <BackLink fallbackHref={`/dashboard/leads/${lead.id}`} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Edit {lead.name}
         </h2>

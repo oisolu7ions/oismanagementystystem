@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { updateUpdateRequestAction } from "@/actions/update-request-mutations";
 import {
   getClientsForUpdateRequestFilter,
@@ -38,12 +38,7 @@ export default async function EditUpdateRequestPage({ params }: EditUpdateReques
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={`/dashboard/update-requests/${request.id}`}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to request
-        </Link>
+        <BackLink fallbackHref={`/dashboard/update-requests/${request.id}`} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Edit Update Request
         </h2>

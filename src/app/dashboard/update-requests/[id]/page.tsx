@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { getUpdateRequestById } from "@/actions/update-requests";
 import { UpdateRequestAttachmentsList } from "@/components/update-requests/update-request-attachments-list";
 import {
@@ -34,12 +35,7 @@ export default async function UpdateRequestDetailPage({ params }: UpdateRequestD
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Link
-            href="/dashboard/update-requests"
-            className="text-sm font-medium text-slate-500 hover:text-slate-900"
-          >
-            ← Back to update requests
-          </Link>
+          <BackLink fallbackHref="/dashboard/update-requests" />
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">{request.title}</h2>
             <UpdateRequestStatusBadge status={request.status} />

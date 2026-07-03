@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { updateTaskAction } from "@/actions/task-mutations";
 import { getProjectsForTaskForm, getTaskById } from "@/actions/tasks";
 import { TaskForm } from "@/components/tasks/task-form";
@@ -30,12 +30,7 @@ export default async function EditTaskPage({ params }: EditTaskPageProps) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={`/dashboard/tasks/${task.id}`}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to task
-        </Link>
+        <BackLink fallbackHref={`/dashboard/tasks/${task.id}`} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Edit {task.title}
         </h2>

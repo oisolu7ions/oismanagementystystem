@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { updateFollowUpAction } from "@/actions/follow-up-mutations";
 import {
   getClientsForFollowUpForm,
@@ -45,12 +45,7 @@ export default async function EditFollowUpPage({ params }: EditFollowUpPageProps
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={`/dashboard/follow-ups/${followUp.id}`}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to follow-up
-        </Link>
+        <BackLink fallbackHref={`/dashboard/follow-ups/${followUp.id}`} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Edit {getFollowUpReasonLabel(followUp.reason)}
         </h2>

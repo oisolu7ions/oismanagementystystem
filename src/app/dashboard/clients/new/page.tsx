@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/components/layout/back-link";
 import { createClientAction } from "@/actions/client-mutations";
 import { getPackagesForClientForm } from "@/actions/clients";
 import { ClientForm } from "@/components/clients/client-form";
@@ -14,12 +14,7 @@ export default async function NewClientPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href="/dashboard/clients"
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to clients
-        </Link>
+        <BackLink fallbackHref="/dashboard/clients" />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New client</h2>
         <p className="mt-1 text-sm text-slate-500">
           Add an active OIS client and assign their service package.

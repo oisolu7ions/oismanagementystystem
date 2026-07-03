@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { getPackageById } from "@/actions/packages";
 import { PackageDeleteButton } from "@/components/packages/package-delete-button";
 import { PackageStatusBadge } from "@/components/packages/package-status-badge";
@@ -29,12 +30,7 @@ export default async function PackageDetailPage({ params }: PackageDetailPagePro
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Link
-            href="/dashboard/packages"
-            className="text-sm font-medium text-slate-500 hover:text-slate-900"
-          >
-            ← Back to packages
-          </Link>
+          <BackLink fallbackHref="/dashboard/packages" />
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">{pkg.name}</h2>
             <PackageStatusBadge isActive={pkg.isActive} />

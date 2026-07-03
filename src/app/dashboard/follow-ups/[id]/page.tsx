@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { getFollowUpById } from "@/actions/follow-ups";
 import { FollowUpDeleteButton } from "@/components/follow-ups/follow-up-delete-button";
 import { FollowUpDueDate } from "@/components/follow-ups/follow-up-due-date";
@@ -39,12 +40,7 @@ export default async function FollowUpDetailPage({ params }: FollowUpDetailPageP
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Link
-            href="/dashboard/follow-ups"
-            className="text-sm font-medium text-slate-500 hover:text-slate-900"
-          >
-            ← Back to follow-ups
-          </Link>
+          <BackLink fallbackHref="/dashboard/follow-ups" />
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">
               {getFollowUpReasonLabel(followUp.reason)}

@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 
 export default function ClientIndexPage() {
-  redirect("/client/dashboard");
+  redirect("/client/dashboard", RedirectType.replace);
 }

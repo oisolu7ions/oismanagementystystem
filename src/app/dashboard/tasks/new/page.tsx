@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/components/layout/back-link";
 import { createTaskAction } from "@/actions/task-mutations";
 import { getProjectsForTaskForm } from "@/actions/tasks";
 import { TaskForm } from "@/components/tasks/task-form";
@@ -23,17 +23,11 @@ export default async function NewTaskPage({ searchParams }: NewTaskPageProps) {
   const backHref = projectId
     ? `/dashboard/projects/${projectId}`
     : "/dashboard/tasks";
-  const backLabel = projectId ? "← Back to project" : "← Back to tasks";
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={backHref}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          {backLabel}
-        </Link>
+        <BackLink fallbackHref={backHref} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New task</h2>
         <p className="mt-1 text-sm text-slate-500">
           Add a task to a project and set priority and due date.

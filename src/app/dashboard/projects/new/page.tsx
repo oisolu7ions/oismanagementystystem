@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/components/layout/back-link";
 import { createProjectAction } from "@/actions/project-mutations";
 import {
   getClientsForProjectForm,
@@ -25,17 +25,11 @@ export default async function NewProjectPage({ searchParams }: NewProjectPagePro
   ]);
 
   const backHref = clientId ? `/dashboard/clients/${clientId}` : "/dashboard/projects";
-  const backLabel = clientId ? "← Back to client" : "← Back to projects";
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={backHref}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          {backLabel}
-        </Link>
+        <BackLink fallbackHref={backHref} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New project</h2>
         <p className="mt-1 text-sm text-slate-500">
           Create a deliverable for a client — website, integration, dashboard, or other

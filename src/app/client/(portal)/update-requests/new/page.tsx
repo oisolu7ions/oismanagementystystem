@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/components/layout/back-link";
 import { createClientUpdateRequestAction } from "@/actions/client-update-request-mutations";
 import { getClientPortalProjectsForUpdateRequest } from "@/lib/client-portal/update-request-queries";
 import { requireClientPortalSession } from "@/lib/client-portal/require-session";
@@ -20,12 +20,7 @@ export default async function ClientNewUpdateRequestPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href="/client/update-requests"
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to update requests
-        </Link>
+        <BackLink fallbackHref="/client/update-requests" />
         <h1 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Submit Update Request
         </h1>

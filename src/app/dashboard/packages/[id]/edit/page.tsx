@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { getPackageById } from "@/actions/packages";
 import { PackageForm } from "@/components/packages/package-form";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -25,12 +25,7 @@ export default async function EditPackagePage({ params }: EditPackagePageProps) 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={`/dashboard/packages/${pkg.id}`}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to package
-        </Link>
+        <BackLink fallbackHref={`/dashboard/packages/${pkg.id}`} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Edit {pkg.name}
         </h2>

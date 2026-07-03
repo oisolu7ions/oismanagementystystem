@@ -10,7 +10,7 @@ import { revalidateActivityPaths } from "@/lib/activity/revalidate";
 import { maybeGenerateReceiptOnPayment } from "@/lib/receipts/create-receipt";
 import { deleteStoredReceiptFile } from "@/lib/receipts/storage";
 import { prisma } from "@/lib/prisma";
-import { invoiceFormSchema, invoiceInputToDbFields } from "@/lib/validators/invoice";
+import { invoiceFormSchema, invoiceInputToDbFields, parseInvoicePaidDate } from "@/lib/validators/invoice";
 
 function revalidateInvoicePaths(
   invoiceId?: string,
@@ -327,13 +327,24 @@ export async function deleteInvoiceAction(
 export async function updateInvoiceStatusAction(
   invoiceId: string,
   status: InvoiceStatus,
+  paidAtInput?: string | null,
 ): Promise<InvoiceActionState & { success?: boolean }> {
   const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
   if (!invoice) {
     return { error: "Invoice not found" };
   }
 
-  const paidAt = status === "PAID" ? invoice.paidAt ?? new Date() : null;
+  let paidAt: Date | null = null;
+  if (status === "PAID") {
+    if (paidAtInput) {
+      paidAt = parseInvoicePaidDate(paidAtInput);
+      if (!paidAt) {
+        return { error: "Enter a valid payment date" };
+      }
+    } else {
+      paidAt = invoice.paidAt ?? new Date();
+    }
+  }
 
   await prisma.invoice.update({
     where: { id: invoiceId },

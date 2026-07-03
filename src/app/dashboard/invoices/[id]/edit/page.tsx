@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { updateInvoiceAction } from "@/actions/invoice-mutations";
 import {
   getClientsForInvoiceForm,
@@ -38,12 +38,7 @@ export default async function EditInvoicePage({ params }: EditInvoicePageProps) 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={`/dashboard/invoices/${invoice.id}`}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to invoice
-        </Link>
+        <BackLink fallbackHref={`/dashboard/invoices/${invoice.id}`} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Edit {invoice.invoiceNumber}
         </h2>

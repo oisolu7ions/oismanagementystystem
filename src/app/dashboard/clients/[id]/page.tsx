@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { getClientById } from "@/actions/clients";
 import { getActivityByClientId } from "@/actions/activity";
 import { getUpdateRequestsByClientId } from "@/actions/update-requests";
@@ -73,12 +74,7 @@ export default async function ClientDetailPage({
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Link
-            href="/dashboard/clients"
-            className="text-sm font-medium text-slate-500 hover:text-slate-900"
-          >
-            ← Back to clients
-          </Link>
+          <BackLink fallbackHref="/dashboard/clients" />
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">{client.name}</h2>
             <ClientStatusBadge status={client.status} />

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { getProjectById } from "@/actions/projects";
 import { getActivityByProjectId } from "@/actions/activity";
 import { getUpdateRequestsByProjectId } from "@/actions/update-requests";
@@ -49,12 +50,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Link
-            href="/dashboard/projects"
-            className="text-sm font-medium text-slate-500 hover:text-slate-900"
-          >
-            ← Back to projects
-          </Link>
+          <BackLink fallbackHref="/dashboard/projects" />
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">{project.name}</h2>
             <ProjectStatusBadge status={project.status} />

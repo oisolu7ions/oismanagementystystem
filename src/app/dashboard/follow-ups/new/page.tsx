@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/components/layout/back-link";
 import { createFollowUpAction } from "@/actions/follow-up-mutations";
 import {
   getClientsForFollowUpForm,
@@ -27,21 +27,11 @@ export default async function NewFollowUpPage({ searchParams }: NewFollowUpPageP
     : clientId
       ? `/dashboard/clients/${clientId}`
       : "/dashboard/follow-ups";
-  const backLabel = leadId
-    ? "← Back to lead"
-    : clientId
-      ? "← Back to client"
-      : "← Back to follow-ups";
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={backHref}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          {backLabel}
-        </Link>
+        <BackLink fallbackHref={backHref} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New follow-up</h2>
         <p className="mt-1 text-sm text-slate-500">
           Schedule a manual reminder for a lead or client.

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { getTaskById } from "@/actions/tasks";
 import { TaskDeleteButton } from "@/components/tasks/task-delete-button";
 import { TaskDueDate } from "@/components/tasks/task-due-date";
@@ -32,12 +33,7 @@ export default async function TaskDetailPage({ params }: TaskDetailPageProps) {
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Link
-            href="/dashboard/tasks"
-            className="text-sm font-medium text-slate-500 hover:text-slate-900"
-          >
-            ← Back to tasks
-          </Link>
+          <BackLink fallbackHref="/dashboard/tasks" />
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">{task.title}</h2>
             <TaskStatusBadge status={task.status} />

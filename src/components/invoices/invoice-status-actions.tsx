@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import {
   forceMarkInvoiceOverdueAction,
   updateInvoiceStatusAction,
 } from "@/actions/invoice-mutations";
 import type { InvoiceStatusValue } from "@/lib/invoices/constants";
 import { Button } from "@/components/ui/button";
+import { InvoiceMarkPaidForm } from "@/components/invoices/invoice-mark-paid-form";
 
 export function InvoiceStatusActions({
   invoiceId,
@@ -18,8 +19,9 @@ export function InvoiceStatusActions({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [showMarkPaidForm, setShowMarkPaidForm] = useState(false);
 
-  function setStatus(status: "SENT" | "PAID" | "CANCELLED" | "OVERDUE") {
+  function setStatus(status: "SENT" | "CANCELLED" | "OVERDUE") {
     startTransition(async () => {
       const result =
         status === "OVERDUE"
@@ -34,6 +36,15 @@ export function InvoiceStatusActions({
   }
 
   const isFinal = currentStatus === "PAID" || currentStatus === "CANCELLED";
+
+  if (showMarkPaidForm) {
+    return (
+      <InvoiceMarkPaidForm
+        invoiceId={invoiceId}
+        onCancel={() => setShowMarkPaidForm(false)}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -53,7 +64,7 @@ export function InvoiceStatusActions({
           type="button"
           size="sm"
           disabled={pending}
-          onClick={() => setStatus("PAID")}
+          onClick={() => setShowMarkPaidForm(true)}
         >
           Mark as Paid & generate receipt
         </Button>

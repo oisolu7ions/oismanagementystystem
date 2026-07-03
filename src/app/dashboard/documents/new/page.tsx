@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/components/layout/back-link";
 import { createDocumentAction } from "@/actions/document-mutations";
 import {
   getClientsForDocumentForm,
@@ -34,11 +34,6 @@ export default async function NewDocumentPage({ searchParams }: NewDocumentPageP
     : resolvedClientId
       ? `/dashboard/clients/${resolvedClientId}`
       : "/dashboard/documents";
-  const backLabel = projectId
-    ? "← Back to project"
-    : resolvedClientId
-      ? "← Back to client"
-      : "← Back to documents";
 
   const relatedClientLabel = project?.client
     ? project.client.businessName
@@ -49,12 +44,7 @@ export default async function NewDocumentPage({ searchParams }: NewDocumentPageP
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={backHref}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          {backLabel}
-        </Link>
+        <BackLink fallbackHref={backHref} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">New document</h2>
         <p className="mt-1 text-sm text-slate-500">
           Upload a file or paste a link to a contract, proposal, logo, brief, or other

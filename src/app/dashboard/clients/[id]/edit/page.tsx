@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { updateClientAction } from "@/actions/client-mutations";
 import { getClientById, getPackagesForClientForm } from "@/actions/clients";
 import { ClientForm } from "@/components/clients/client-form";
@@ -28,12 +28,7 @@ export default async function EditClientPage({ params }: EditClientPageProps) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={`/dashboard/clients/${client.id}`}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to client
-        </Link>
+        <BackLink fallbackHref={`/dashboard/clients/${client.id}`} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Edit {client.name}
         </h2>

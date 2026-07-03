@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/layout/back-link";
 import { updateDocumentAction } from "@/actions/document-mutations";
 import {
   getClientsForDocumentForm,
@@ -40,12 +40,7 @@ export default async function EditDocumentPage({ params }: EditDocumentPageProps
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link
-          href={`/dashboard/documents/${document.id}`}
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← Back to document
-        </Link>
+        <BackLink fallbackHref={`/dashboard/documents/${document.id}`} />
         <h2 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           Edit {document.name}
         </h2>

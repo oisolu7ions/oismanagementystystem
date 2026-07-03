@@ -1,6 +1,6 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth/password";
 import {
@@ -114,7 +114,7 @@ export async function clientLoginAction(
       name: clientUser.name,
     });
     await deleteClientLoginChallenge();
-    redirect("/client/dashboard");
+    redirect("/client/dashboard", RedirectType.replace);
   }
 
   try {
@@ -264,7 +264,7 @@ export async function clientVerifyLoginCodeAction(
   });
   await deleteClientLoginChallenge();
 
-  redirect("/client/dashboard");
+  redirect("/client/dashboard", RedirectType.replace);
 }
 
 export async function resendClientLoginCodeAction(): Promise<ClientPortalAuthState> {
@@ -408,5 +408,5 @@ export async function clientLogoutAction(): Promise<void> {
   }
   await deleteClientSession();
   await deleteClientLoginChallenge();
-  redirect("/client/login");
+  redirect("/client/login", RedirectType.replace);
 }
