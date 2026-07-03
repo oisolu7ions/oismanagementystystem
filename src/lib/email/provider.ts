@@ -79,20 +79,51 @@ function appendBusinessFooter(message: EmailMessage, business: BusinessEmailSett
   };
 }
 
+function createMimeBoundary(): string {
+  return `ois-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+function formatMimePart(contentType: string, body: string): string {
+  return [
+    `Content-Type: ${contentType}; charset=utf-8`,
+    "Content-Transfer-Encoding: 8bit",
+    "",
+    body,
+  ].join("\r\n");
+}
+
+function buildMultipartAlternativeBody(text: string, html: string, boundary: string): string {
+  return [
+    `--${boundary}`,
+    formatMimePart("text/plain", text),
+    `--${boundary}`,
+    formatMimePart("text/html", html),
+    `--${boundary}--`,
+    "",
+  ].join("\r\n");
+}
+
 function buildRawMessage(message: EmailMessage, settings: EmailRuntimeSettings): string {
   const headers = [
     `From: ${normalizeHeaderValue(settings.from)}`,
     `To: ${normalizeHeaderValue(message.to)}`,
     `Subject: ${normalizeHeaderValue(message.subject)}`,
     "MIME-Version: 1.0",
-    message.html ? "Content-Type: text/html; charset=utf-8" : "Content-Type: text/plain; charset=utf-8",
   ];
 
   if (settings.replyTo) {
     headers.splice(2, 0, `Reply-To: ${normalizeHeaderValue(settings.replyTo)}`);
   }
 
-  return `${headers.join("\r\n")}\r\n\r\n${message.html ?? message.text}`;
+  if (message.html) {
+    const boundary = createMimeBoundary();
+    headers.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
+    const body = buildMultipartAlternativeBody(message.text, message.html, boundary);
+    return `${headers.join("\r\n")}\r\n\r\n${body}`;
+  }
+
+  headers.push("Content-Type: text/plain; charset=utf-8");
+  return `${headers.join("\r\n")}\r\n\r\n${message.text}`;
 }
 
 function readSmtpResponse(socket: net.Socket): Promise<string> {
@@ -221,7 +252,14 @@ export async function sendEmail(message: EmailMessage): Promise<EmailDeliveryRes
   if (runtimeSettings.replyTo) console.log(`Reply-To: ${runtimeSettings.replyTo}`);
   console.log(`To: ${decoratedMessage.to}`);
   console.log(`Subject: ${decoratedMessage.subject}`);
-  console.log(decoratedMessage.text);
+  if (decoratedMessage.html) {
+    console.log("--- text/plain ---");
+    console.log(decoratedMessage.text);
+    console.log("--- text/html ---");
+    console.log(decoratedMessage.html);
+  } else {
+    console.log(decoratedMessage.text);
+  }
   console.log("[/OIS email:console]\n");
   return "console";
 }
