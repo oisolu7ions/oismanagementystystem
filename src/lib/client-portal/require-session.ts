@@ -6,7 +6,7 @@ import { getClientPortalSecuritySettings } from "@/lib/settings";
 export async function requireClientPortalSession() {
   const session = await getClientSession();
   if (!session) {
-    redirect("/client/login");
+    redirect("/client/session-expired");
   }
 
   const security = await getClientPortalSecuritySettings();

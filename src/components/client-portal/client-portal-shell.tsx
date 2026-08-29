@@ -5,7 +5,12 @@ import { useState } from "react";
 import { ClientBrand } from "@/components/client-portal/client-brand";
 import { ClientPortalHeader } from "@/components/client-portal/client-portal-header";
 import { ClientPortalNav } from "@/components/client-portal/client-portal-nav";
+import { SessionIdleMonitor } from "@/components/auth/session-idle-monitor";
 import { LegalSupportFooter, type LegalSupportFooterLink } from "@/components/legal-support/legal-support-footer";
+import {
+  CLIENT_SESSION_IDLE_TIMEOUT_SECONDS,
+  CLIENT_SESSION_LAST_SEEN_UPDATE_SECONDS,
+} from "@/lib/auth/client-constants";
 import type { ClientSessionPayload } from "@/types/client-session";
 
 export function ClientPortalShell({
@@ -22,7 +27,14 @@ export function ClientPortalShell({
   const [navOpen, setNavOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <>
+      <SessionIdleMonitor
+        idleTimeoutSeconds={CLIENT_SESSION_IDLE_TIMEOUT_SECONDS}
+        keepaliveIntervalSeconds={CLIENT_SESSION_LAST_SEEN_UPDATE_SECONDS}
+        keepaliveUrl="/api/client/session/keepalive"
+        expiredUrl="/client/session-expired"
+      />
+      <div className="flex h-screen overflow-hidden">
       <button
         type="button"
         aria-label="Close navigation menu"
@@ -57,6 +69,7 @@ export function ClientPortalShell({
           />
         ) : null}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

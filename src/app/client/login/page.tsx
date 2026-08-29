@@ -8,8 +8,14 @@ export const metadata = {
   title: "Client sign in",
 };
 
-export default async function ClientLoginPage() {
+export default async function ClientLoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ expired?: string }>;
+}) {
   const footerConfig = await getLegalSupportFooterConfig();
+  const params = searchParams ? await searchParams : undefined;
+  const showIdleMessage = params?.expired === "idle";
 
   return (
     <div className="flex min-h-screen flex-col px-4">
@@ -21,6 +27,11 @@ export default async function ClientLoginPage() {
 
           <Card>
             <CardBody className="py-6">
+              {showIdleMessage ? (
+                <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                  Your session ended after 5 minutes of inactivity. Sign in again to continue.
+                </p>
+              ) : null}
               <ClientLoginForm />
             </CardBody>
           </Card>

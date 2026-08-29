@@ -11,6 +11,7 @@ import {
   updateSecuritySettingsAction,
   type SettingsActionState,
 } from "@/actions/settings";
+import { AdminMfaSection } from "@/components/settings/admin-mfa-section";
 import type { SettingsSystemStatus } from "@/lib/settings/system-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -68,6 +69,12 @@ type LegalSettings = {
   showFooterInPortal: boolean;
 };
 
+type AdminMfaSettings = {
+  enabled: boolean;
+  pendingSetup: boolean;
+  verifiedAt: string | null;
+};
+
 type SettingsFormsProps = {
   business: BusinessSettings;
   email: EmailSettings;
@@ -75,6 +82,7 @@ type SettingsFormsProps = {
   portalDefaults: PortalDefaults;
   legal: LegalSettings;
   systemStatus: SettingsSystemStatus;
+  adminMfa: AdminMfaSettings;
 };
 
 const initialState: SettingsActionState = {};
@@ -139,6 +147,7 @@ export function SettingsForms({
   portalDefaults,
   legal,
   systemStatus,
+  adminMfa,
 }: SettingsFormsProps) {
   const [businessState, businessAction, businessPending] = useActionState(updateBusinessSettingsAction, initialState);
   const [emailState, emailAction, emailPending] = useActionState(updateEmailSettingsAction, initialState);
@@ -233,6 +242,12 @@ export function SettingsForms({
           </form>
         </CardBody>
       </Card>
+
+      <AdminMfaSection
+        enabled={adminMfa.enabled}
+        pendingSetup={adminMfa.pendingSetup}
+        verifiedAt={adminMfa.verifiedAt}
+      />
 
       <Card>
         <CardHeader title="Client Portal Access Defaults" description="Defaults used when future portal users and client-visible records are created." />

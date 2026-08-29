@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   await deleteClientSession();
   await deleteClientLoginChallenge();
 
-  const response = NextResponse.redirect(new URL("/client/login", request.url));
+  const response = NextResponse.redirect(new URL("/client/login?expired=idle", request.url));
   response.cookies.delete(CLIENT_SESSION_COOKIE);
   response.cookies.delete(CLIENT_LOGIN_CHALLENGE_COOKIE);
   return response;

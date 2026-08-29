@@ -1,4 +1,6 @@
 import { SettingsForms } from "@/components/settings/settings-forms";
+import { getAdminMfaStatus } from "@/actions/admin-mfa";
+import { getSession } from "@/lib/auth/session";
 import {
   ensureDefaultSettings,
   getBusinessSettings,
@@ -15,6 +17,11 @@ export const metadata = {
 
 export default async function SettingsPage() {
   await ensureDefaultSettings();
+
+  const session = await getSession();
+  const adminMfa = session
+    ? await getAdminMfaStatus(session.userId)
+    : { enabled: false, pendingSetup: false, verifiedAt: null };
 
   const [business, email, security, portalDefaults, legal, systemStatus] = await Promise.all([
     getBusinessSettings(),
@@ -40,6 +47,11 @@ export default async function SettingsPage() {
         portalDefaults={portalDefaults}
         legal={legal}
         systemStatus={systemStatus}
+        adminMfa={{
+          enabled: adminMfa.enabled,
+          pendingSetup: adminMfa.pendingSetup,
+          verifiedAt: adminMfa.verifiedAt?.toISOString() ?? null,
+        }}
       />
     </div>
   );

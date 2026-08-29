@@ -5,13 +5,12 @@ import type { SessionPayload } from "@/types/session";
 import {
   SESSION_COOKIE,
   SESSION_MAX_AGE_SECONDS,
+  ADMIN_SESSION_IDLE_TIMEOUT_SECONDS,
+  ADMIN_SESSION_LAST_SEEN_UPDATE_SECONDS,
 } from "@/lib/auth/constants";
 import { getSecurityRequestInfo, logClientSecurityEvent } from "@/lib/client-security/security-events";
 
 type CreateSessionPayload = Omit<SessionPayload, "sessionId">;
-
-const ADMIN_SESSION_IDLE_TIMEOUT_SECONDS = 60 * 60 * 12;
-const LAST_SEEN_UPDATE_INTERVAL_SECONDS = 60 * 5;
 
 function getSecretKey(): Uint8Array {
   const secret = process.env.SESSION_SECRET;
@@ -35,7 +34,7 @@ async function revokeAdminSession(sessionId: string): Promise<void> {
 }
 
 async function touchAdminSession(sessionId: string, lastSeenAt: Date): Promise<void> {
-  const staleBefore = new Date(Date.now() - LAST_SEEN_UPDATE_INTERVAL_SECONDS * 1000);
+  const staleBefore = new Date(Date.now() - ADMIN_SESSION_LAST_SEEN_UPDATE_SECONDS * 1000);
   if (lastSeenAt > staleBefore) return;
 
   await prisma.adminSession.updateMany({

@@ -3,6 +3,7 @@
 import { redirect, RedirectType } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth/password";
+import { createAdminMfaChallenge } from "@/lib/auth/admin-mfa-challenge";
 import { createSession, deleteSession } from "@/lib/auth/session";
 import { getSecurityRequestInfo, logClientSecurityEvent } from "@/lib/client-security/security-events";
 import {
@@ -69,6 +70,15 @@ export async function loginAction(
 
   const user = await prisma.user.findUnique({
     where: { email },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      passwordHash: true,
+      totpEnabled: true,
+      totpSecretEncrypted: true,
+    },
   });
 
   if (!user) {
@@ -90,6 +100,23 @@ export async function loginAction(
       requestInfo,
     });
     return { error: "Invalid email or password" };
+  }
+
+  await logClientSecurityEvent({
+    userId: user.id,
+    type: "ADMIN_LOGIN_PASSWORD_SUCCESS",
+    message: "Admin password verified.",
+    requestInfo,
+  });
+
+  if (user.totpEnabled && user.totpSecretEncrypted) {
+    await createAdminMfaChallenge({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    });
+    redirect("/login/mfa", RedirectType.replace);
   }
 
   await logClientSecurityEvent({

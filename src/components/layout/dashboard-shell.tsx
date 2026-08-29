@@ -2,6 +2,11 @@
 
 import type { ReactNode } from "react";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
+import { SessionIdleMonitor } from "@/components/auth/session-idle-monitor";
+import {
+  ADMIN_SESSION_IDLE_TIMEOUT_SECONDS,
+  ADMIN_SESSION_LAST_SEEN_UPDATE_SECONDS,
+} from "@/lib/auth/constants";
 import { MobileNavProvider } from "@/components/layout/mobile-nav-context";
 import { Sidebar } from "@/components/layout/sidebar";
 import type { SessionPayload } from "@/types/session";
@@ -15,6 +20,12 @@ export function DashboardShell({
 }) {
   return (
     <MobileNavProvider>
+      <SessionIdleMonitor
+        idleTimeoutSeconds={ADMIN_SESSION_IDLE_TIMEOUT_SECONDS}
+        keepaliveIntervalSeconds={ADMIN_SESSION_LAST_SEEN_UPDATE_SECONDS}
+        keepaliveUrl="/api/session/keepalive"
+        expiredUrl="/session-expired"
+      />
       <div className="flex h-screen overflow-hidden">
         <Sidebar />
         <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:ml-64">
